@@ -19,8 +19,7 @@ import android.view.Menu;
 import android.widget.TextView;
 
 public class MainActivity extends Activity implements OnInitListener{
-	private final static boolean DEBUG = BuildConfig.DEBUG;
-	
+	private final static boolean DEBUG = BuildConfig.DEBUG;	
     private final static String TAG = "SimpleTalk";
 
     private final static int SPEECH_DURATION = 1500;

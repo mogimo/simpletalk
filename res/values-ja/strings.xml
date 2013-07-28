@@ -5,5 +5,8 @@
     <string name="action_settings">Settings</string>
     <string name="text">お話しましょう</string>
     <string name="please_again">もう一度お願い</string>
+    <string name="hello">こんにちは;こんにちわ;こんちは;こんちわ</string>
+    <string name="evening">こんばんは;こんばんわ;</string>
+    <string name="morning">おはよう;おはようございます</string>
     
 </resources>
