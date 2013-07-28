@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SimpleTalk</string>
+    <string name="action_settings">Settings</string>
+    <string name="text">Lets talk!</string>
+    <string name="please_again">Please again</string>
+    
+</resources>
