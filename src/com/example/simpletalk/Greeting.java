@@ -1,12 +1,5 @@
 package com.example.simpletalk;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import android.content.Context;
 
 public final class Greeting {
@@ -16,10 +9,23 @@ public final class Greeting {
 		R.string.evening,
 		R.string.morning,
 	};
+	private static final String DELIMITER = ";";
 	
+	/**
+	 * Return the response word for given greeting
+	 * @param context context
+	 * @param greeting the greeting word
+	 * @return the response for the parameter
+	 */
 	public static String getResponse(Context context, String greeting) {
-		
-		
+		for (int i=0; i<greetingIds.length; i++) {
+			String words = context.getResources().getString(greetingIds[i]);
+			if (words.contains(greeting)) {
+				// these are also response words
+				String[] response = words.split(DELIMITER);
+				return response[0];
+			}
+		}
 		return null;
 	}
 }

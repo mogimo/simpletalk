@@ -84,7 +84,7 @@ public class MainActivity extends Activity implements OnInitListener{
             talk(getTopScoredText(texts, scores));
 
             // next talk
-            mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, SPEECH_DURATION);
+            messageRetry();
             isRecognierWorking = false;
         }
 
@@ -103,13 +103,18 @@ public class MainActivity extends Activity implements OnInitListener{
                     if (!isRecognierWorking && !mTts.isSpeaking()) {
                         startSpeachRecognize();
                     } else {
-                        mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, SPEECH_DURATION);
+                    	messageRetry();
                     }
                     break;
                 default:
                     break;
             }
         }
+    }
+    
+    private void messageRetry() {
+    	mHandler.removeMessages(MSG_SPEECH_AGAIN);
+        mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, SPEECH_DURATION);    	
     }
 
     @Override
@@ -193,7 +198,7 @@ public class MainActivity extends Activity implements OnInitListener{
     	if (mTts != null && isTtsReady) {
 	    	mTts.speak(
 	                getString(R.string.please_again), TextToSpeech.QUEUE_FLUSH, null);
-	        mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, SPEECH_DURATION);
+	    	messageRetry();
     	}
     }
 
