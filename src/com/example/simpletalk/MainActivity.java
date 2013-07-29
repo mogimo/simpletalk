@@ -2,7 +2,7 @@
 package com.example.simpletalk;
 
 import java.util.ArrayList;
-import java.util.Locale;
+import java.util.HashMap;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +14,7 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.TextView;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 public class MainActivity extends Activity implements OnInitListener{
 	private final static boolean DEBUG = BuildConfig.DEBUG;	
     private final static String TAG = "SimpleTalk";
+    private static final String PARAM_TAG = MainActivity.class.getSimpleName();
 
     private final static int SPEECH_DURATION = 1500;
     private final static int MSG_SPEECH_AGAIN = 0;
@@ -28,11 +30,14 @@ public class MainActivity extends Activity implements OnInitListener{
     
     private boolean isRecognierWorking = false;
     private boolean isTtsReady = false;
+    private HashMap<String, String> mTtsParam = null;
+    private String mRetrySpeakId;
 
     private SpeechRecognizer mSpeechRecognizer;
     private RecognitionServiceLisnter mListener;
     private TextView mTextView;
     private TextToSpeech mTts;
+    private TtsProgressListener mTtsListener;
     private RepeatHandler mHandler = new RepeatHandler();
 
     private class RecognitionServiceLisnter implements RecognitionListener {
@@ -93,6 +98,30 @@ public class MainActivity extends Activity implements OnInitListener{
             //Log.d(TAG, "onRmsChanged");
         }
     }
+    
+    private class TtsProgressListener extends UtteranceProgressListener {
+
+        @Override
+        public void onDone(String utteranceId) {
+            if (DEBUG) Log.d(TAG, "onDone: " + utteranceId);
+            if (mRetrySpeakId != null) {
+                if (utteranceId.equals(mRetrySpeakId)) {
+                    messageRetry();
+                }
+            }
+        }
+
+        @Override
+        public void onError(String utteranceId) {
+            if (DEBUG) Log.d(TAG, "error from TTS Engine!: " + utteranceId);
+        }
+
+        @Override
+        public void onStart(String utteranceId) {
+            if (DEBUG) Log.d(TAG, "onStart: " + utteranceId);
+        }
+        
+    }
 
     private class RepeatHandler extends Handler {
         @Override
@@ -103,6 +132,7 @@ public class MainActivity extends Activity implements OnInitListener{
                     if (!isRecognierWorking && !mTts.isSpeaking()) {
                         startSpeachRecognize();
                     } else {
+                        if (DEBUG) Log.d(TAG, "maybe still speaking");
                     	messageRetry();
                     }
                     break;
@@ -113,6 +143,7 @@ public class MainActivity extends Activity implements OnInitListener{
     }
     
     private void messageRetry() {
+        if (DEBUG) Log.d(TAG, "send retry msg!");
     	mHandler.removeMessages(MSG_SPEECH_AGAIN);
         mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, SPEECH_DURATION);    	
     }
@@ -129,8 +160,10 @@ public class MainActivity extends Activity implements OnInitListener{
             mSpeechRecognizer.setRecognitionListener(mListener);
         }
 
+        mTtsListener = new TtsProgressListener();
         mTts = new TextToSpeech(getApplicationContext(), this);
-        mTts.setLanguage(new Locale("ja"));
+        mTts.setOnUtteranceProgressListener(mTtsListener);
+        mTtsParam = new HashMap<String, String>();
     }
 
     public void onResume() {
@@ -164,7 +197,6 @@ public class MainActivity extends Activity implements OnInitListener{
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "ja-JP");
         intent.putExtra(RecognizerIntent.EXTRA_CONFIDENCE_SCORES, "");
     	if (mSpeechRecognizer != null) {
     		mSpeechRecognizer.startListening(intent);
@@ -182,13 +214,6 @@ public class MainActivity extends Activity implements OnInitListener{
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
     public void onInit(int arg0) {
     	if (DEBUG) Log.d(TAG, "TTS ready!");
     	isTtsReady = true;
@@ -196,20 +221,30 @@ public class MainActivity extends Activity implements OnInitListener{
 
     private void speakTryAgain() {
     	if (mTts != null && isTtsReady) {
+    	    mTtsParam.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, PARAM_TAG);
 	    	mTts.speak(
-	                getString(R.string.please_again), TextToSpeech.QUEUE_FLUSH, null);
-	    	messageRetry();
+	                getString(R.string.please_again), TextToSpeech.QUEUE_FLUSH, mTtsParam);
+	    	//messageRetry();
+	    	mRetrySpeakId = mTtsParam.get(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID);
     	}
     }
 
     private void talk(String text) {
         if (text != null) {
         	if (mTts != null && isTtsReady) {
-        		mTts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+        	    mTtsParam.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, PARAM_TAG);
+        		mTts.speak(text, TextToSpeech.QUEUE_FLUSH, mTtsParam);
+        		mRetrySpeakId = null;
         	}
         } else {
             speakTryAgain();
         }
     }
     
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
 }
