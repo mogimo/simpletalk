@@ -40,6 +40,7 @@ public class MainActivity extends Activity implements OnInitListener{
     private TextToSpeech mTts;
     private TtsProgressListener mTtsListener;
     private RepeatHandler mHandler = new RepeatHandler();
+    private ConversationEngine mEngine;
 
     private class RecognitionServiceLisnter implements RecognitionListener {
         @Override
@@ -87,7 +88,7 @@ public class MainActivity extends Activity implements OnInitListener{
                 results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             float[] scores = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
             mTextView.setText("["+scores[0]+"] " + texts.get(0));
-            talk(getTopScoredText(texts, scores));
+            talk(mEngine.getResponse(getTopScoredText(texts, scores)));
 
             // next talk
             messageRetry();
@@ -160,6 +161,8 @@ public class MainActivity extends Activity implements OnInitListener{
         mTts = new TextToSpeech(getApplicationContext(), this);
         mTts.setOnUtteranceProgressListener(mTtsListener);
         mTtsParam = new HashMap<String, String>();
+
+        mEngine = new ConversationEngine(this);
     }
 
     public void onResume() {
@@ -180,7 +183,6 @@ public class MainActivity extends Activity implements OnInitListener{
         super.onDestroy();
         if (mSpeechRecognizer != null) {
             mSpeechRecognizer.setRecognitionListener(null);
-//            mSpeechRecognizer.destroy();
             mSpeechRecognizer = null;
         }
         if (mTts != null) {
@@ -201,8 +203,10 @@ public class MainActivity extends Activity implements OnInitListener{
 
     private void stopSpeechRecognize() {
         if (mSpeechRecognizer != null) {
-            mSpeechRecognizer.stopListening();
-            mSpeechRecognizer.cancel();
+            //mSpeechRecognizer.stopListening();
+            //mSpeechRecognizer.cancel();
+
+            // SpeechRecognier bind when startListening, then unbind when destroy.
             mSpeechRecognizer.destroy();
         }
     }
@@ -228,7 +232,7 @@ public class MainActivity extends Activity implements OnInitListener{
             mTtsParam.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, PARAM_RETRY);
             mTts.speak(
                     getString(R.string.please_again), TextToSpeech.QUEUE_FLUSH, mTtsParam);
-            //messageRetry();
+            // send delayed message after callback from tts engine
         }
     }
 

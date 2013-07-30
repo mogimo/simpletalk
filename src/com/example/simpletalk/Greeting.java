@@ -3,7 +3,6 @@ package com.example.simpletalk;
 import android.content.Context;
 
 public final class Greeting {
-	private static final int RESOURCE_ID = R.xml.greeting_map;
 	private static final int[] greetingIds = {
 		R.string.hello,
 		R.string.evening,
@@ -23,6 +22,7 @@ public final class Greeting {
 			if (words.contains(greeting)) {
 				// these are also response words
 				String[] response = words.split(DELIMITER);
+				// always return the first element(word)
 				return response[0];
 			}
 		}
