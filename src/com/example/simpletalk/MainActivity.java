@@ -19,7 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.widget.TextView;
 
-public class MainActivity extends Activity implements OnInitListener{
+public class MainActivity extends Activity implements OnInitListener, Engine.ResponseListener {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk";
     private final static String PARAM_TAG = MainActivity.class.getPackage().getName();
@@ -35,14 +35,14 @@ public class MainActivity extends Activity implements OnInitListener{
     private HashMap<String, String> mTtsParam = null;
 
     private SpeechRecognizer mSpeechRecognizer;
-    private RecognitionServiceLisnter mListener;
+    private RecognitionServiceListener mListener;
     private TextView mTextView;
     private TextToSpeech mTts;
     private TtsProgressListener mTtsListener;
     private RepeatHandler mHandler = new RepeatHandler();
-    private ConversationEngine mEngine;
+    private Engine mEngine;
 
-    private class RecognitionServiceLisnter implements RecognitionListener {
+    private class RecognitionServiceListener implements RecognitionListener {
         @Override
         public void onBeginningOfSpeech() {
             if (DEBUG) Log.d(TAG, "onBeginningOfSpeech");
@@ -88,7 +88,7 @@ public class MainActivity extends Activity implements OnInitListener{
                 results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             float[] scores = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
             mTextView.setText("["+scores[0]+"] " + texts.get(0));
-            talk(mEngine.getResponse(getTopScoredText(texts, scores)));
+            mEngine.request(getTopScoredText(texts, scores));
 
             // next talk
             messageRetry();
@@ -153,7 +153,7 @@ public class MainActivity extends Activity implements OnInitListener{
         mTextView = (TextView)findViewById(R.id.text);
 
         // Speech Recognizer
-        mListener = new RecognitionServiceLisnter();
+        mListener = new RecognitionServiceListener();
         mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
 
         // Text to Speech
@@ -163,6 +163,7 @@ public class MainActivity extends Activity implements OnInitListener{
         mTtsParam = new HashMap<String, String>();
 
         mEngine = new ConversationEngine(this);
+        mEngine.setResponseListener(this);
     }
 
     public void onResume() {
@@ -171,6 +172,7 @@ public class MainActivity extends Activity implements OnInitListener{
             mSpeechRecognizer.setRecognitionListener(mListener);
         }
         startSpeechRecognize();
+        //mEngine.request("今日は暑いですね");        //TODO: for test
     }
 
     public void onPause() {
@@ -252,5 +254,11 @@ public class MainActivity extends Activity implements OnInitListener{
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    // get response from engine
+    @Override
+    public void onResult(String response) {
+        talk(response);
     }
 }
