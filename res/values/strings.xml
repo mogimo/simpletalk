@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">SimpleTalk</string>
     <string name="action_settings">Settings</string>
     <string name="text">Lets talk!</string>
     <string name="please_again">Please again</string>
+
+    <string name="adjective">adjective</string>
+    <string name="auxiliary_verb">auxiliary verb</string>
+    <string name="postposition">postposition</string>
+
     <string name="hello">Hello</string>
     <string name="evening">Good Evening</string>
     <string name="morning">Good Morning</string>

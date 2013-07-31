@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">SimpleTalk</string>
     <string name="action_settings">Settings</string>
     <string name="text">お話しましょう</string>
     <string name="please_again">もう一度お願い</string>
+
+    <string name="adjective">形容詞</string>
+    <string name="auxiliary_verb">助動詞</string>
+    <string name="postposition">助詞</string>
+
     <string name="hello">こんにちは;こんにちわ;こんちは;こんちわ</string>
     <string name="evening">こんばんは;こんばんわ;</string>
     <string name="morning">おはよう;おはようございます</string>

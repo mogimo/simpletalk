@@ -63,7 +63,7 @@ public class ConversationEngine implements Engine {
     }
 
     private String parseMorphologic(String xml) {
-        MorphoResponseParser mParser = new MorphoResponseParser();
+        MorphoResponseParser mParser = new MorphoResponseParser(mContext);
         mParser.parse(xml);
         String result = mParser.parrot();
         return result;
@@ -75,6 +75,8 @@ public class ConversationEngine implements Engine {
             case MORPHOLOGICAL:
                 str = parseMorphologic(xml);
                 break;
+            case KEYPHRASE:
+            	break;
         }
         return str;
     }

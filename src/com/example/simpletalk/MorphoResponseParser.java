@@ -8,16 +8,23 @@ import java.util.List;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.content.Context;
 import android.util.Xml;
 
 public class MorphoResponseParser {
-    private static final String ADJECTIVE = "形容詞";
-    private static final String AUXILIARY_VERB = "助動詞";
-    private static final String POSTPOSITION = "助詞";
+    private static String ADJECTIVE;
+    private static String AUXILIARY_VERB;
+    private static String POSTPOSITION;
 
     private int mCount = 0;
     private List<String> mReadings = new ArrayList<String>();
     private List<String> mPoses = new ArrayList<String>();
+
+    public MorphoResponseParser(Context context) {
+    	ADJECTIVE = context.getResources().getString(R.string.adjective);
+    	AUXILIARY_VERB = context.getResources().getString(R.string.auxiliary_verb);
+    	POSTPOSITION = context.getResources().getString(R.string.postposition);
+    }
 
     public void parse(String xml) {
         XmlPullParser parser = Xml.newPullParser();
@@ -61,7 +68,6 @@ public class MorphoResponseParser {
         }
     }
 
-    // test "形容詞+助動詞+助詞" or "形容詞+助詞"
     public String parrot() {
         if (mCount < 2 || mPoses.size() < 1) {
             return null;
