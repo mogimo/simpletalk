@@ -51,15 +51,17 @@ public class ConversationEngine implements Engine {
     private void analyze(String sentence) {
         // simple greeting?
         String response = Greeting.getResponse(mContext, sentence);
+        if (response != null && mListener != null) {
+            mListener.onResult(response);
+            return;
+        }
 
         // not simple greeting, then analyze morphological
-        if (response == null) {
-            mState = Type.MORPHOLOGICAL;
-            setDefaultPayload(Type.MORPHOLOGICAL);
-            setSentence(sentence);
-            mTask = new HttpRequestTask(YAHOO_MORPHO_URL, mPayload);
-            mTask.execute();
-        }
+        mState = Type.MORPHOLOGICAL;
+        setDefaultPayload(Type.MORPHOLOGICAL);
+        setSentence(sentence);
+        mTask = new HttpRequestTask(YAHOO_MORPHO_URL, mPayload);
+        mTask.execute();
     }
 
     private String parseMorphologic(String xml) {

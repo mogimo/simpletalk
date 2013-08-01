@@ -172,7 +172,6 @@ public class MainActivity extends Activity implements OnInitListener, Engine.Res
             mSpeechRecognizer.setRecognitionListener(mListener);
         }
         startSpeechRecognize();
-        //mEngine.request("今日は暑いですね");        //TODO: for test
     }
 
     public void onPause() {

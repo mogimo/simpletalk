@@ -75,16 +75,22 @@ public class MorphoResponseParser {
         int lastIndex = mPoses.size() - 1;
         StringBuilder result = new StringBuilder();
         int index = mPoses.lastIndexOf(ADJECTIVE);
+        if (index < 0) {
+            // not found
+            return null;
+        }
         result.append(mReadings.get(index));
         // next word
-        if (mPoses.get(++index).equals(AUXILIARY_VERB)) {
+        index++;
+        if (mPoses.get(index).equals(AUXILIARY_VERB)) {
             result.append(mReadings.get(index));
             // next word
-            if (mPoses.get(++index).equals(POSTPOSITION) && lastIndex == index) {
+            index++;
+            if (mPoses.get(index).equals(POSTPOSITION) && lastIndex == index) {
                 result.append(mReadings.get(index));
                 return result.toString();
             }
-        } else if (mPoses.get(++index).equals(POSTPOSITION) && lastIndex == index) {
+        } else if (mPoses.get(index).equals(POSTPOSITION) && lastIndex == index) {
             result.append(mReadings.get(index));
             return result.toString();
         }
