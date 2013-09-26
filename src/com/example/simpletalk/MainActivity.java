@@ -3,7 +3,9 @@ package com.example.simpletalk;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -29,6 +31,9 @@ public class MainActivity extends Activity implements OnInitListener, Engine.Res
     private final static int SPEECH_DURATION = 1500;
     private final static int MSG_SPEECH_AGAIN = 0;
     private final static float SCORE_THRESHOLD = 0.3f;
+
+    private final static boolean LOGGING_ON = true;
+    private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
     private boolean isRecognierWorking = false;
     private boolean isTtsReady = false;
@@ -248,16 +253,50 @@ public class MainActivity extends Activity implements OnInitListener, Engine.Res
         }
     }
 
+    // get response from engine
+    @Override
+    public void onResult(String response) {
+        talk(response);
+
+        if (LOGGING_ON) {
+            logging(response);
+        }
+}
+
+    private void logging(String result) {
+        Map<String, String> payload = new HashMap<String, String>();
+        payload.put("id", mTextView.getText().toString());
+        payload.put("value", result);
+        LoggingTask task = new LoggingTask(GAE_LOGGING, payload);
+        task.execute();
+    }
+
+    private class LoggingTask extends AsyncTask<Void, Void, Void> {
+        private final String mUrl;
+        private final Map<String, String>mPayload;
+        private HttpRequest request = new HttpRequest();
+
+        LoggingTask(final String url, final Map<String, String>payload) {
+            this.mUrl = url;
+            this.mPayload = payload;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            request.post(mUrl, mPayload);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            //
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
-
-    // get response from engine
-    @Override
-    public void onResult(String response) {
-        talk(response);
     }
 }
