@@ -3,7 +3,9 @@
     <string name="app_name">SimpleTalk</string>
     <string name="action_settings">Settings</string>
     <string name="text">お話しましょう</string>
-    <string name="please_again">もう一度お願い</string>
+
+    <string name="please_again">よく分からなかったので、もう一度お願いします</string>
+    <string name="error_again">ごめんなさい、調子が悪いので聴き取れません</string>
 
     <string name="adjective">形容詞</string>
     <string name="auxiliary_verb">助動詞</string>
