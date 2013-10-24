@@ -11,6 +11,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import android.content.Context;
 import android.util.Xml;
 
+@Deprecated
 public class YahooMorphoParser {
     private static String ADJECTIVE;
     private static String AUXILIARY_VERB;

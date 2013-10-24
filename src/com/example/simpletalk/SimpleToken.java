@@ -3,7 +3,7 @@ package com.example.simpletalk;
 public class SimpleToken {
     private String mSurface;
     private String mPartOfSpeech;
-    
+
     public SimpleToken() {
     }
 

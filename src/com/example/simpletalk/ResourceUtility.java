@@ -9,6 +9,7 @@ import org.xmlpull.v1.XmlPullParser;
 import android.content.Context;
 import android.content.res.XmlResourceParser;
 
+@Deprecated
 public final class ResourceUtility {
     public static Map<String,String> getHashMapResource(Context c, int hashMapResId) {
         Map<String,String> map = null;
