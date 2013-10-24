@@ -33,7 +33,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
 
     private final static int SPEECH_DURATION = 1500;
     private final static int MSG_SPEECH_AGAIN = 0;
-    private final static float SCORE_THRESHOLD = 0.3f;
+    private final static float SCORE_THRESHOLD = 0.1f;
 
     // for VoiceTEXT
     private final byte[] mLicense =  new byte[2048];
@@ -46,7 +46,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
     private final static boolean LOGGING_ON = true;
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
-    private boolean isRecognierWorking = false;
+    private boolean isRecogniezrWorking = false;
 
     private SpeechRecognizer mSpeechRecognizer;
     private RecognitionServiceListener mListener;
@@ -73,7 +73,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
         @Override
         public void onError(int error) {
             if (DEBUG) Log.d(TAG, "onError: " + error);
-            isRecognierWorking = false;
+            isRecogniezrWorking = false;
             switch (error) {
                 case SpeechRecognizer.ERROR_NETWORK:
                 case SpeechRecognizer.ERROR_SERVER:
@@ -99,7 +99,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
         @Override
         public void onReadyForSpeech(Bundle params) {
             if (DEBUG) Log.d(TAG, "onReadyForSpeech");
-            isRecognierWorking = true;
+            isRecogniezrWorking = true;
         }
 
         @Override
@@ -113,7 +113,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
 
             // next talk
             messageRetry();
-            isRecognierWorking = false;
+            isRecogniezrWorking = false;
         }
 
         @Override
@@ -128,7 +128,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
             if (DEBUG) Log.d(TAG, "message comming: " + msg);
             switch (msg.what) {
                 case MSG_SPEECH_AGAIN:
-                    if (!isRecognierWorking) {
+                    if (!isRecogniezrWorking) {
                         startSpeechRecognize();
                     } else {
                         if (DEBUG) Log.d(TAG, "maybe still speaking");
@@ -164,7 +164,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
             loadDB();
         }
 
-        mEngine = new ConversationEngine(this);
+        mEngine = new IntegratedEngine(this);
         mEngine.setResponseListener(this);
     }
 

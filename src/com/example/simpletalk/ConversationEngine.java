@@ -65,7 +65,7 @@ public class ConversationEngine implements Engine {
     }
 
     private String parseMorphologic(String xml) {
-        MorphoResponseParser mParser = new MorphoResponseParser(mContext);
+        YahooMorphoParser mParser = new YahooMorphoParser(mContext);
         mParser.parse(xml);
         String result = mParser.parrot();
         return result;
