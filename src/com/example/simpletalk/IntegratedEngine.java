@@ -41,24 +41,6 @@ public class IntegratedEngine implements Engine {
         this.mListener = listener;
     }
 
-    /*
-     * Greeting
-     */
-    private String greeting(List<SimpleToken> tokens) {
-        int id = 0;
-        for (SimpleToken token : tokens) {
-            if ((id = Greeting.getResponseId(mContext, token.getSurface())) != 0) {
-                String str = Response.getReplyWord(mContext, id);
-                int emotion = 0;
-                if ((emotion = Response.getIntonation(mContext, id)) != 0) {
-                    str = Utils.addEmotionTag(str, emotion);
-                }
-                return str;
-            }
-        }
-        return null;
-    }
-
     private String intonation(String message) {
         int id = 0;
         switch (mState) {
@@ -78,9 +60,11 @@ public class IntegratedEngine implements Engine {
     }
 
     private String analyze(List<SimpleToken> tokens) {
-        String response = null;
-        if ((response = greeting(tokens)) != null) {
-            if (DEBUG) Log.d(TAG, "found greeting");;
+        // Greeting
+        String response = Greeting.greeting(mContext, tokens);
+        if (response == null) {
+            // Parrot
+            response = Parrot.parrot(mContext, tokens);
         }
 
         // TODO: and more ...

@@ -20,8 +20,8 @@ public class Response {
     private static JSONArray getResponse(int id) {
         try {
             JSONObject root = new JSONObject(mData);
-            int version = root.getInt("version");
-            if (version == 1) {
+            int format = root.getInt("format");
+            if (format == 1) {
                 JSONArray responses = root.getJSONArray("response");
                 // [[response data], ..., [response data]]
                 return responses.getJSONArray(id);

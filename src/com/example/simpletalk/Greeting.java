@@ -1,5 +1,7 @@
 package com.example.simpletalk;
 
+import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,6 +22,24 @@ public final class Greeting {
          return null;
      }
 
+    /*
+     * Greeting
+     */
+    public static String greeting(Context context, List<SimpleToken> tokens) {
+        int id = 0;
+        for (SimpleToken token : tokens) {
+            if ((id = Greeting.getResponseId(context, token.getSurface())) != 0) {
+                String str = Response.getReplyWord(context, id);
+                int emotion = 0;
+                if ((emotion = Response.getIntonation(context, id)) != 0) {
+                    str = Utils.addEmotionTag(str, emotion);
+                }
+                return str;
+            }
+        }
+        return null;
+    }
+
     /**
      * Return the response word for given greeting
      * @param context context
@@ -35,8 +55,8 @@ public final class Greeting {
          boolean found = false;
          try {
              JSONObject root = new JSONObject(mData);
-             int version = root.getInt("version");
-             if (version == 1) {
+             int format = root.getInt("format");
+             if (format == 2) {
                  JSONArray phrases = root.getJSONArray("phrase");
                  // [[phrase data], ..., [phrase data]]
                  for (int i=0; i<phrases.length(); i++) {

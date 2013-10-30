@@ -12,11 +12,18 @@ import android.util.Log;
 public class Utils {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk";
+    private final static String DEFAULT_LOCALE = "ja";
+
+    private static String getCurrentLocale(Context context) {
+        String locale = context.getResources().getConfiguration().locale.getLanguage();
+        Log.d(TAG, "locale="+locale);
+        return locale != null ? locale : DEFAULT_LOCALE;
+    }
 
     public static String loadAssetDB(Context context, String filename) {
         AssetManager as = context.getResources().getAssets();
         try {
-           InputStream input = as.open(filename);
+           InputStream input = as.open(getCurrentLocale(context) + "/" + filename);
            BufferedReader reader = new BufferedReader(new InputStreamReader(input, "UTF-8"));
            StringBuilder builder = new StringBuilder();
            String line;
