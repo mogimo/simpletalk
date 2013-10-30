@@ -62,9 +62,14 @@ public class IntegratedEngine implements Engine {
     private String analyze(List<SimpleToken> tokens) {
         // Greeting
         String response = Greeting.greeting(mContext, tokens);
+        // Parrot
         if (response == null) {
-            // Parrot
             response = Parrot.parrot(mContext, tokens);
+        }
+        // Function
+        if (response == null) {
+            Functions func = new Functions();
+            response = func.answer(mContext, tokens);
         }
 
         // TODO: and more ...

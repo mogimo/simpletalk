@@ -9,7 +9,7 @@ import org.json.JSONObject;
 import android.content.Context;
 
 public final class Greeting {
-    private static final String dbFile = "greeting.txt";
+    private static final String DB_FILE = "greeting.txt";
     private static String mData = null;
 
     // format version 1
@@ -48,7 +48,7 @@ public final class Greeting {
      */
      public static int getResponseId(Context context, String word) {
          if (mData == null) {
-             mData = Utils.loadAssetDB(context, dbFile);
+             mData = Utils.loadAssetDB(context, DB_FILE);
          }
 
          int response = 0;

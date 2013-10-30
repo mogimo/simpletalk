@@ -16,7 +16,7 @@ public class Utils {
 
     private static String getCurrentLocale(Context context) {
         String locale = context.getResources().getConfiguration().locale.getLanguage();
-        Log.d(TAG, "locale="+locale);
+        if (DEBUG) Log.d(TAG, "locale="+locale);
         return locale != null ? locale : DEFAULT_LOCALE;
     }
 
