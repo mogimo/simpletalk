@@ -6,6 +6,7 @@ import java.util.Map;
 import android.content.Context;
 import android.os.AsyncTask;
 
+@Deprecated
 public class ConversationEngine implements Engine {
     private final static String YAHOO_MORPHO_URL =
         "http://jlp.yahooapis.jp/MAService/V1/parse";

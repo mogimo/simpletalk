@@ -63,8 +63,8 @@ public class Functions {
         return match;
     }
 
-    public int parse(Context context, List<SimpleToken> tokens) {
-        int command = 0;
+    public JSONObject parse(Context context, List<SimpleToken> tokens) {
+        JSONObject ret = null;
         if (mData == null) {
             mData = Utils.loadAssetDB(context, DB_FILE);
         }
@@ -89,7 +89,7 @@ public class Functions {
                 for (int i=0; i<functions.length(); i++) {
                     JSONObject function = functions.getJSONObject(i);
                     if (matchTargets(function)) {
-                        command = function.getInt("command");
+                        ret = function;
                         break;
                     }
                 }
@@ -97,24 +97,46 @@ public class Functions {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return command;
+        return ret;
     }
-    
+
+    private int getCommandId(JSONObject function) {
+        int ret = 0;
+        try {
+            ret = function.getInt("command");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    private int getResponseId(JSONObject function) {
+        int ret = 0;
+        try {
+            ret = function.getInt("reply");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
     public String answer(Context context, List<SimpleToken> tokens) {
         String answer = null;
 
-        int command = parse(context, tokens);
-        switch (command) {
-            case COMMAND_DATE:
-                Date date = new Date();
-                Locale locale = context.getResources().getConfiguration().locale;
-                SimpleDateFormat format = 
-                    new SimpleDateFormat("yyyy'年'MM'月'dd'日'E'曜日'", locale);
-                answer = format.format(date);
-                break;
-            default:
-                answer = context.getString(R.string.please_again);
-                break;
+        JSONObject function = parse(context, tokens);
+        if (function != null) {
+            switch (getCommandId(function)) {
+                case COMMAND_DATE:
+                    Date date = new Date();
+                    Locale locale = context.getResources().getConfiguration().locale;
+                    SimpleDateFormat format = new SimpleDateFormat(
+                                Response.getReplyWord(context, getResponseId(function)), locale);
+                    answer = format.format(date);
+                    break;
+                default:
+                    //answer = context.getString(R.string.please_again);
+                    break;
+            }
         }
         return answer;
     }

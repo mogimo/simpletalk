@@ -2,10 +2,10 @@
     "format":3,
     "date":"2013/10/30",
     "phrases":[
-        ["synonym":["何"],"target":"何"],
-        ["synonym":["日","曜日","月","年"],"target":"日付"],
+        {"synonym":["何"],"target":"何"},
+        {"synonym":["日","曜日","月","年"],"target":"日付"}
     ],
     "function":[
-        ["targets":["何","日付"],"command":1,"reply":0],
+        {"targets":["何","日付"],"command":1,"reply":7}
     ]
 }
