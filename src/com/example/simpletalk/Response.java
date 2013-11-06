@@ -9,73 +9,84 @@ import android.content.Context;
 
 public class Response {
     private static final String dbFile = "response.txt";
-    private static String mData = null;
+    private static final int FORMAT_VERSION = 1;
+    private static JSONArray mResponses = null;
 
-    // format version 1
-    private static final int IDX_ID = 0;
-    private static final int IDX_WORD = 1;
-    private static final int IDX_INTONATION = 2;
-    private static final int IDX_ACTION = 3;
-
-    private static JSONArray getResponse(int id) {
+    private static JSONArray getResponseData(Context context) {
+        String data = Utils.loadAssetDB(context, dbFile);
+        JSONArray responses = null;
         try {
-            JSONObject root = new JSONObject(mData);
+            JSONObject root = new JSONObject(data);
             int format = root.getInt("format");
-            if (format == 1) {
-                JSONArray responses = root.getJSONArray("response");
-                // [[response data], ..., [response data]]
-                return responses.getJSONArray(id);
+            if (format == FORMAT_VERSION) {
+                responses = root.getJSONArray("response");
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+        return responses;
+    }
+
+    private static JSONObject getResponse(int id) {
+        if (mResponses != null) {
+            try {
+                // [{response data}, ..., {response data}]
+                for (int i=0; i<mResponses.length(); i++) {
+                    JSONObject response = mResponses.getJSONObject(i);
+                    if (response.getInt("id") == id) {
+                        return response;
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }
 
-    private static int getInt(int id, int index) {
+    private static int getInt(Context context, int id, String tag) {
+        if (mResponses == null) {
+            mResponses = getResponseData(context);
+        }
+
+        int value = 0;
         try {
-            JSONArray response = getResponse(id);
+            JSONObject response = getResponse(id);
             if (response != null) {
-                // [id, word, intonation, action]
-                return response.getInt(index);
+                value = response.getInt(tag);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return 0;
+        return value;
     }
 
-    private static String getString(int id, int index) {
+    private static String getString(Context context, int id, String tag) {
+        if (mResponses == null) {
+            mResponses = getResponseData(context);
+        }
+
+        String ret = null;
         try {
-            JSONArray response = getResponse(id);
+            JSONObject response = getResponse(id);
             if (response != null) {
-                // [id, word, intonation, action]
-                return response.getString(index);
+                ret = response.getString(tag);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return null;
+        return ret;
     }
 
     public static String getReplyWord(Context context, int id) {
-        if (mData == null) {
-            mData = Utils.loadAssetDB(context, dbFile);
-        }
-        return getString(id, IDX_WORD);
+        return getString(context, id, "reply");
     }
 
     public static int getIntonation(Context context, int id) {
-        if (mData == null) {
-            mData = Utils.loadAssetDB(context, dbFile);
-        }
-        return getInt(id, IDX_INTONATION);
+        return getInt(context, id, "intonation");
     }
 
     public static int getAction(Context context, int id) {
-        if (mData == null) {
-            mData = Utils.loadAssetDB(context, dbFile);
-        }
-        return getInt(id, IDX_ACTION);
+        return getInt(context, id, "action");
     }
 }
