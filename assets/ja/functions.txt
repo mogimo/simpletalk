@@ -2,6 +2,8 @@
     "format":3,
     "date":"2013/10/30",
     "phrases":[
+        {"synonym":["君","あなた","おまえ","あんた","自己"],"tag":"you"},
+        {"synonym":["名前","誰","紹介"],"tag":"who"},
         {"synonym":["何"],"tag":"what"},
         {"synonym":["日","曜日","月","年"],"tag":"date"},
         {"synonym":["今日","本日","今"],"tag":"today"},
@@ -10,6 +12,7 @@
         {"synonym":["昨日","きのう","きんのう"],"tag":"yesterday"}
     ],
     "function":[
-        {"targets":["what","date"],"option":["today","tomorrow","dayaftertomorrow","yesterday"],"command":1,"reply":7}
+        {"targets":["who","you"],"command":1,"reply":8},
+        {"targets":["what","date"],"option":["today","tomorrow","dayaftertomorrow","yesterday"],"command":2,"reply":7}
     ]
 }

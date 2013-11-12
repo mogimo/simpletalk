@@ -17,7 +17,8 @@ public class Functions {
     private static final String DB_FILE = "functions.txt";
     private static final int FORMAT_VERSION = 3;
 
-    private static final int COMMAND_DATE = 1;
+    private static final int COMMAND_SELF_INTRO = 1;
+    private static final int COMMAND_DATE = 2;
 
     private String mData = null;
     private List<String> mTargets = new ArrayList<String>();
@@ -165,6 +166,9 @@ public class Functions {
         JSONObject function = parse(context, tokens);
         if (function != null) {
             switch (getCommandId(function)) {
+                case COMMAND_SELF_INTRO:
+                    answer = Response.getReplyWord(context, getResponseId(function));
+                    break;
                 case COMMAND_DATE:
                     String template = Response.getReplyWord(context, getResponseId(function));
                     String option = getOption(function);
