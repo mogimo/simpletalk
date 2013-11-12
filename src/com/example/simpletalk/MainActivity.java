@@ -43,7 +43,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
     private static final int FLAG_FIRST_FRAME = 0;
     private static final int FLAG_ANOTHRE_FRAME = 1;
 
-    private final static boolean LOGGING_ON = false;
+    private final static boolean LOGGING_ON = !DEBUG;
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
     private boolean isRecogniezrWorking = false;

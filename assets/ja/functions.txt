@@ -2,10 +2,14 @@
     "format":3,
     "date":"2013/10/30",
     "phrases":[
-        {"synonym":["何"],"target":"何"},
-        {"synonym":["日","曜日","月","年"],"target":"日付"}
+        {"synonym":["何"],"tag":"what"},
+        {"synonym":["日","曜日","月","年"],"tag":"date"},
+        {"synonym":["今日","本日","今"],"tag":"today"},
+        {"synonym":["明日","あす","あした","みょうにち"],"tag":"tomorrow"},
+        {"synonym":["明後日"],"tag":"dayaftertomorrow"},
+        {"synonym":["昨日","きのう","きんのう"],"tag":"yesterday"}
     ],
     "function":[
-        {"targets":["何","日付"],"command":1,"reply":7}
+        {"targets":["what","date"],"option":["today","tomorrow","dayaftertomorrow","yesterday"],"command":1,"reply":7}
     ]
 }

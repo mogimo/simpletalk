@@ -12,7 +12,8 @@ public final class Greeting {
     private static final String DB_FILE = "greeting.txt";
     private static String mData = null;
 
-    // format version 1
+    private static final int FORMAT_VERSION = 2;
+
     private static final int IDX_WORDS = 0;
     private static final int IDX_FUNCTION = 1;
     private static final int IDX_RESPONSE = 2;
@@ -56,7 +57,7 @@ public final class Greeting {
          try {
              JSONObject root = new JSONObject(mData);
              int format = root.getInt("format");
-             if (format == 2) {
+             if (format == FORMAT_VERSION) {
                  JSONArray phrases = root.getJSONArray("phrase");
                  // [[phrase data], ..., [phrase data]]
                  for (int i=0; i<phrases.length(); i++) {

@@ -2,6 +2,7 @@ package com.example.simpletalk;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -80,7 +81,7 @@ public class Functions {
                     JSONObject phrase = phrases.getJSONObject(i);
                     for (SimpleToken token : tokens) {
                         if (searchSynonym(phrase, token.getSurface())) {
-                            mTargets.add(phrase.getString("target"));
+                            mTargets.add(phrase.getString("tag"));
                         }
                     }
                 }
@@ -92,6 +93,26 @@ public class Functions {
                         ret = function;
                         break;
                     }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    private String getOption(JSONObject function) {
+        String ret = null;
+        if (function == null || mTargets.size() == 0) {
+            return ret;
+        }
+        try {
+            JSONArray option = function.getJSONArray("option");
+            for (int i=0; i<option.length(); i++) {
+                String str = option.getString(i);
+                if (mTargets.contains(str)) {
+                    ret = str;
+                    break;
                 }
             }
         } catch (JSONException e) {
@@ -120,6 +141,24 @@ public class Functions {
         return ret;
     }
 
+    private Calendar getDate(Context context, String option) {
+        Locale locale = context.getResources().getConfiguration().locale;
+        Calendar cal = Calendar.getInstance(locale);
+        if (option.equals("tomorrow")) {
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+        } else if (option.equals("dayaftertomorrow")) {
+            cal.add(Calendar.DAY_OF_MONTH, 2);
+        } else if (option.equals("yesterday")) {
+            cal.add(Calendar.DAY_OF_MONTH, -1);
+        }
+        return cal;
+    }
+    private String getDateString(Context context, String template, String option) {
+        Locale locale = context.getResources().getConfiguration().locale;
+        SimpleDateFormat format = new SimpleDateFormat(template, locale);
+        return format.format(getDate(context, option).getTime());
+    }
+
     public String answer(Context context, List<SimpleToken> tokens) {
         String answer = null;
 
@@ -127,11 +166,9 @@ public class Functions {
         if (function != null) {
             switch (getCommandId(function)) {
                 case COMMAND_DATE:
-                    Date date = new Date();
-                    Locale locale = context.getResources().getConfiguration().locale;
-                    SimpleDateFormat format = new SimpleDateFormat(
-                                Response.getReplyWord(context, getResponseId(function)), locale);
-                    answer = format.format(date);
+                    String template = Response.getReplyWord(context, getResponseId(function));
+                    String option = getOption(function);
+                    answer = getDateString(context, template, option);
                     break;
                 default:
                     //answer = context.getString(R.string.please_again);
