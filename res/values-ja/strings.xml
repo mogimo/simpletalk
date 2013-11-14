@@ -6,6 +6,7 @@
 
     <string name="please_again">よく分からなかったので、もう一度お願いします</string>
     <string name="error_again">ごめんなさい、調子が悪いので聴き取れません</string>
+    <string name="low_score">ちゃんと聞き取れたか自信が無いのでもう一度お願いします</string>
 
     <string name="adjective">形容詞</string>
     <string name="auxiliary_verb">助動詞</string>

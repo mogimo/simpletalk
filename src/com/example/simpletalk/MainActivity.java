@@ -31,9 +31,9 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk";
 
-    private final static int SPEECH_DURATION = 1500;
+    private final static int SPEECH_DURATION = 2000;
     private final static int MSG_SPEECH_AGAIN = 0;
-    private final static float SCORE_THRESHOLD = 0.1f;
+    private final static float SCORE_THRESHOLD = 0.3f;
 
     // for VoiceTEXT
     private final byte[] mLicense =  new byte[2048];
@@ -47,6 +47,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
     private boolean isRecogniezrWorking = false;
+    private boolean isTalking = false;
 
     private SpeechRecognizer mSpeechRecognizer;
     private RecognitionServiceListener mListener;
@@ -79,6 +80,13 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
                 case SpeechRecognizer.ERROR_SERVER:
                     talk(getString(R.string.error_again));
                     break;
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                    if (!isRecogniezrWorking) {
+                        startSpeechRecognize();
+                    } else {
+                        messageRetry();
+                    }
+                    break;
                 default:
                     talk(getString(R.string.please_again));
                     messageRetry();
@@ -109,7 +117,12 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
                 results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             float[] scores = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
             mTextView.setText("["+scores[0]+"] " + texts.get(0));
-            mEngine.request(getTopScoredText(texts, scores));
+            String msg = getTopScoredText(texts, scores);
+            if (msg != null) {
+                mEngine.request(msg);
+            } else {
+                talk(getString(R.string.low_score));
+            }
 
             // next talk
             messageRetry();
@@ -128,10 +141,10 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
             if (DEBUG) Log.d(TAG, "message comming: " + msg);
             switch (msg.what) {
                 case MSG_SPEECH_AGAIN:
-                    if (!isRecogniezrWorking) {
+                    if (!isRecogniezrWorking && !isTalking) {
                         startSpeechRecognize();
                     } else {
-                        if (DEBUG) Log.d(TAG, "maybe still speaking");
+                        if (DEBUG) Log.d(TAG, "maybe still speaking or talking");
                         messageRetry();
                     }
                     break;
@@ -293,6 +306,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
         }
 
         Log.d(TAG, "Now talking: " + text + "\n");
+        isTalking = true;
         int minBufSize = AudioTrack.getMinBufferSize(
                 16000,
                 AudioFormat.CHANNEL_CONFIGURATION_MONO,
@@ -326,6 +340,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
         } while (ret == 0);
         at.flush();
         at.stop();
+        isTalking = false;
     }
 
     private void tryAgain() {
