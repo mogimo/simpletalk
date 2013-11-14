@@ -13,6 +13,7 @@
     ],
     "function":[
         {"targets":["who","you"],"command":1,"reply":8},
-        {"targets":["what","date"],"option":["today","tomorrow","dayaftertomorrow","yesterday"],"command":2,"reply":7}
+        {"targets":["what","date"],"option":["today","tomorrow","dayaftertomorrow","yesterday"],"command":2,"reply":7},
+        {"targets":["who"],"command":1,"reply":8}
     ]
 }

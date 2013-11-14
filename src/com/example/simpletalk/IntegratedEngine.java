@@ -15,8 +15,16 @@ public class IntegratedEngine implements Engine {
     private enum Empathy {NORMAL, HAPPINESS, ANGER, SADNESS};
     private Empathy mState = Empathy.NORMAL;
 
+    private Greeting mGreeting;
+    private Functions mFunction;
+    private Parrot mParrot;
+
     public IntegratedEngine(Context context) {
         this.mContext = context;
+
+        mGreeting = new Greeting();
+        mFunction = new Functions();
+        mParrot = new Parrot();
     }
 
     @Override
@@ -60,16 +68,19 @@ public class IntegratedEngine implements Engine {
     }
 
     private String analyze(List<SimpleToken> tokens) {
+        String response = null;
+
         // Greeting
-        String response = Greeting.greeting(mContext, tokens);
+        if (mGreeting != null) {
+            response = mGreeting.greeting(mContext, tokens);
+        }
         // Parrot
-        if (response == null) {
-            response = Parrot.parrot(mContext, tokens);
+        if (response == null && mParrot != null) {
+            response = mParrot.parrot(mContext, tokens);
         }
         // Function
-        if (response == null) {
-            Functions func = new Functions();
-            response = func.answer(mContext, tokens);
+        if (response == null && mFunction != null) {
+            response = mFunction.answer(mContext, tokens);
         }
 
         // TODO: and more ...

@@ -5,7 +5,7 @@ import java.util.List;
 import android.content.Context;
 
 public class Parrot {
-    private static int lastIndex(List<SimpleToken> tokens, String pos) {
+    private int lastIndex(List<SimpleToken> tokens, String pos) {
         int lastIndex = tokens.size() - 1;
         for (int i=lastIndex; i>=0; i--) {
             SimpleToken token = tokens.get(i);
@@ -22,7 +22,7 @@ public class Parrot {
      * 形容詞 + 助詞 + 助詞                   ... 暑いよね
      * 形容詞 + 助詞                                 ... 暑いね
      */
-    public static String parrot(Context context, List<SimpleToken> tokens) {
+    public String parrot(Context context, List<SimpleToken> tokens) {
         // 形容詞
         String ADJECTIVE = context.getResources().getString(R.string.adjective);
         // 助動詞

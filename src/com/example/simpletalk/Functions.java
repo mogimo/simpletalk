@@ -17,12 +17,16 @@ public class Functions {
     private static final String DB_FILE = "functions.txt";
     private static final int FORMAT_VERSION = 3;
 
+    /* command ids */
     private static final int COMMAND_SELF_INTRO = 1;
     private static final int COMMAND_DATE = 2;
 
+    /* functions JSON data */
     private String mData = null;
+    /* tag words in the speech */
     private List<String> mTargets = new ArrayList<String>();
 
+    /* search word in phrase */
     private boolean searchSynonym(JSONObject phrase, String word) {
         boolean found = false;
         if (phrase == null || word == null) {
@@ -42,6 +46,7 @@ public class Functions {
         return found;
     }
 
+    /* test whether all words in mTarges are contained in targets */
     private boolean matchTargets(JSONObject function) {
         boolean match = false;
         if (function == null || mTargets.size() == 0) {

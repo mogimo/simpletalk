@@ -8,28 +8,31 @@ import org.json.JSONObject;
 
 import android.content.Context;
 
+/**
+ * Exact match phrase parser
+ * @author S121206
+ *
+ */
 public final class Greeting {
     private static final String DB_FILE = "greeting.txt";
+    /* greeting JSON data */
     private static String mData = null;
 
     private static final int FORMAT_VERSION = 2;
 
-    private static final int IDX_WORDS = 0;
-    private static final int IDX_FUNCTION = 1;
-    private static final int IDX_RESPONSE = 2;
-
     @Deprecated
+    /* not work any more */
      public static String getResponse(Context context, String word) {
          return null;
      }
 
     /*
-     * Greeting
+     * return greeting message
      */
-    public static String greeting(Context context, List<SimpleToken> tokens) {
+    public String greeting(Context context, List<SimpleToken> tokens) {
         int id = 0;
         for (SimpleToken token : tokens) {
-            if ((id = Greeting.getResponseId(context, token.getSurface())) != 0) {
+            if ((id = getResponseId(context, token.getSurface())) != 0) {
                 String str = Response.getReplyWord(context, id);
                 int emotion = 0;
                 if ((emotion = Response.getIntonation(context, id)) != 0) {
@@ -47,7 +50,7 @@ public final class Greeting {
      * @param text the greeting word
      * @return the response id for the parameter
      */
-     public static int getResponseId(Context context, String word) {
+     private int getResponseId(Context context, String word) {
          if (mData == null) {
              mData = Utils.loadAssetDB(context, DB_FILE);
          }
@@ -58,12 +61,12 @@ public final class Greeting {
              JSONObject root = new JSONObject(mData);
              int format = root.getInt("format");
              if (format == FORMAT_VERSION) {
-                 JSONArray phrases = root.getJSONArray("phrase");
+                 JSONArray phrases = root.getJSONArray("phrases");
                  // [[phrase data], ..., [phrase data]]
                  for (int i=0; i<phrases.length(); i++) {
-                     JSONArray phrase = phrases.getJSONArray(i);
+                     JSONObject phrase = phrases.getJSONObject(i);
                      // [[words], function, response]
-                     JSONArray words = phrase.getJSONArray(IDX_WORDS);
+                     JSONArray words = phrase.getJSONArray("words");
                      // [word, word, ..., word]
                      for (int k=0; k<words.length(); k++) {
                          if (words.getString(k).equals(word)) {
@@ -72,7 +75,7 @@ public final class Greeting {
                          }
                      }
                      if (found) {
-                         response = phrase.getInt(IDX_RESPONSE);
+                         response = phrase.getInt("response");
                          break;
                      }
                  }
