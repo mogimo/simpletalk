@@ -80,6 +80,9 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
                 case SpeechRecognizer.ERROR_SERVER:
                     talk(getString(R.string.error_again));
                     break;
+                case SpeechRecognizer.ERROR_NO_MATCH:
+                    talk(getString(R.string.please_retry));
+                    break;
                 case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
                     if (!isRecogniezrWorking) {
                         startSpeechRecognize();
