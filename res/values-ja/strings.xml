@@ -4,9 +4,9 @@
     <string name="action_settings">Settings</string>
     <string name="text">お話しましょう</string>
 
-    <string name="please_again">よく分からなかったので、もう一度お願いします</string>
-    <string name="error_again">ごめんなさい、調子が悪いので聴き取れません</string>
-    <string name="low_score">ちゃんと聞き取れたか自信が無いのでもう一度お願いします</string>
+    <string name="please_again">よく分からなかったので、もう一度お願い</string>
+    <string name="error_again">ごめん、なんか調子が悪い</string>
+    <string name="low_score">ごめん、ちゃんと聞き取れなかった</string>
     <string name="please_retry">ん？なんって言った？</string>
 
     <string name="adjective">形容詞</string>

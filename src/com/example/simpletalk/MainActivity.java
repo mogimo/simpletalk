@@ -27,7 +27,8 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.widget.TextView;
 
-public class MainActivity extends Activity implements Engine.ResponseListener {
+public class MainActivity extends Activity
+        implements Engine.ResponseListener, AudioTrack.OnPlaybackPositionUpdateListener {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk";
 
@@ -43,11 +44,12 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
     private static final int FLAG_FIRST_FRAME = 0;
     private static final int FLAG_ANOTHRE_FRAME = 1;
 
-    private final static boolean LOGGING_ON = !DEBUG;
+    private final static boolean LOGGING_ON = true;
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
     private boolean isRecogniezrWorking = false;
     private boolean isTalking = false;
+    private AudioTrack mTrack;
 
     private SpeechRecognizer mSpeechRecognizer;
     private RecognitionServiceListener mListener;
@@ -78,10 +80,12 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
             switch (error) {
                 case SpeechRecognizer.ERROR_NETWORK:
                 case SpeechRecognizer.ERROR_SERVER:
-                    talk(getString(R.string.error_again));
+                    talk(Utils.addEmotionTag(getString(R.string.error_again),
+                            Utils.EMOTION_SADNESS));
                     break;
                 case SpeechRecognizer.ERROR_NO_MATCH:
                     talk(getString(R.string.please_retry));
+                    messageRetry();
                     break;
                 case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
                     if (!isRecogniezrWorking) {
@@ -124,7 +128,8 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
             if (msg != null) {
                 mEngine.request(msg);
             } else {
-                talk(getString(R.string.low_score));
+                talk(Utils.addEmotionTag(
+                        getString(R.string.low_score), Utils.EMOTION_SADNESS));
             }
 
             // next talk
@@ -163,6 +168,29 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
         mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, SPEECH_DURATION);
     }
 
+    private void createAudioTrack() {
+        if (mTrack == null) {
+            int minBufSize = AudioTrack.getMinBufferSize(
+                    16000,
+                    AudioFormat.CHANNEL_CONFIGURATION_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT);
+            // check frame size (3rd argument is -1)
+            HIKARI.TextToBuffer(0, null, FLAG_SIZE_CHECK, -1, -1, -1, -1, -1, -1);
+            int frameSize = HIKARI.TextToBufferRTN();
+            Log.d(TAG, "minBufSize=" + minBufSize + " frameSize=" + frameSize);
+            // adjust buffer size
+            if (frameSize < minBufSize)
+                frameSize = minBufSize;
+            mTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                    16000, 
+                    AudioFormat.CHANNEL_CONFIGURATION_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    frameSize,
+                    AudioTrack.MODE_STREAM);
+            mTrack.setPlaybackPositionUpdateListener(this);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -179,6 +207,8 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
         if (readLicence()) {
             loadDB();
         }
+
+        createAudioTrack();
 
         mEngine = new IntegratedEngine(this);
         mEngine.setResponseListener(this);
@@ -301,66 +331,66 @@ public class MainActivity extends Activity implements Engine.ResponseListener {
         Log.d(TAG, "done");
         return true;
     }
-    
+
+    @Override
+    public void onMarkerReached(AudioTrack track) {
+        isTalking = false;
+        Log.d(TAG, "marker state="+track.getPlayState());
+    }
+
+    @Override
+    public void onPeriodicNotification(AudioTrack track) {
+        Log.d(TAG, "periodic state="+track.getPlayState());
+    }
+
     private void talk(String text) {
         if (text == null) {
             Log.e(TAG, "talk text is null");
-            tryAgain();
+            supportiveResponse();
+        }
+        if (mTrack == null) {
+            Log.e(TAG, "AudioTrack is something wrong...");
+            return;
         }
 
-        Log.d(TAG, "Now talking: " + text + "\n");
-        isTalking = true;
-        int minBufSize = AudioTrack.getMinBufferSize(
-                16000,
-                AudioFormat.CHANNEL_CONFIGURATION_MONO,
-                AudioFormat.ENCODING_PCM_16BIT);
-        // check frame size (3rd argument is -1)
-        HIKARI.TextToBuffer(0, null, FLAG_SIZE_CHECK, -1, -1, -1, -1, -1, -1);
-        int frameSize = HIKARI.TextToBufferRTN();
-        Log.d(TAG, "minBufSize=" + minBufSize + " frameSize=" + frameSize);
-        // adjust buffer size
-        if (frameSize < minBufSize)
-            frameSize = minBufSize;
+        if (DEBUG) Log.d(TAG, "Now talking: " + text + "\n");
+        //isTalking = true;
 
-        AudioTrack at = new AudioTrack(AudioManager.STREAM_MUSIC,
-                16000, 
-                AudioFormat.CHANNEL_CONFIGURATION_MONO,
-                AudioFormat.ENCODING_PCM_16BIT,
-                frameSize,
-                AudioTrack.MODE_STREAM);
-        at.play();
         byte[] audioData = null;
         int flag = FLAG_FIRST_FRAME;
         int ret = 0;
+        int length = 0;
+        mTrack.play();
         do {
             audioData = HIKARI.TextToBuffer(0, text, flag, -1, -1, -1, -1, 1, -1);
             ret = HIKARI.TextToBufferRTN();
-            Log.d(TAG, "TextToBufferRTN=" + ret + "(" + flag + ")");
             if (audioData != null) {
-                at.write(audioData, 0, audioData.length);
+                length = audioData.length;
+                mTrack.write(audioData, 0, length);
             }
+            if (DEBUG) Log.d(TAG, "TextToBufferRTN=" + ret + "(" + flag + ") length=" + length);
             flag = FLAG_ANOTHRE_FRAME;
         } while (ret == 0);
-        at.flush();
-        at.stop();
-        isTalking = false;
+        mTrack.setPositionNotificationPeriod(length);
+        //mTrack.setNotificationMarkerPosition(length);
+        mTrack.flush();
+        mTrack.stop();
     }
 
-    private void tryAgain() {
-        Log.d(TAG, "try again to speak!");
-        talk(getString(R.string.please_again));
+    private void supportiveResponse() {
+        if (DEBUG) Log.d(TAG, "maybe not match any phrase!");
+        talk(Response.getSupportiveResponse(getApplicationContext()));
         messageRetry();
     }
 
     // get response from engine
     @Override
     public void onResult(String response) {
-        talk(response);
-
         if (LOGGING_ON) {
             logging(response);
         }
-}
+        talk(response);
+    }
 
     private void logging(String result) {
         Map<String, String> payload = new HashMap<String, String>();

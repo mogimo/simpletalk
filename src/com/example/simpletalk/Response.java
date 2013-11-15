@@ -6,11 +6,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.os.SystemClock;
+import android.util.Log;
 
 public class Response {
+    private final static boolean DEBUG = BuildConfig.DEBUG;
+    private final static String TAG = "SimpleTalk";
     private static final String dbFile = "response.txt";
     private static final int FORMAT_VERSION = 1;
     private static JSONArray mResponses = null;
+
+    private static int SUPPORTIVE_RESPONSE_ID = 9;
 
     private static JSONArray getResponseData(Context context) {
         String data = Utils.loadAssetDB(context, dbFile);
@@ -70,12 +76,24 @@ public class Response {
         try {
             JSONObject response = getResponse(id);
             if (response != null) {
-                ret = response.getString(tag);
+                JSONArray replies = response.getJSONArray(tag);
+                int n = replies.length();
+                int index = 0;
+                if (n > 1) {
+                    long time = SystemClock.elapsedRealtime();
+                    index = (int) (time % n);
+                    if (DEBUG) Log.d(TAG,"magic="+time+" n="+n+" choose index="+index);
+                }
+                ret = replies.getString(index);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return ret;
+    }
+
+    public static String getSupportiveResponse(Context context) {
+        return getReplyWord(context, SUPPORTIVE_RESPONSE_ID);
     }
 
     public static String getReplyWord(Context context, int id) {
