@@ -13,6 +13,8 @@
         {"id":8,"reply":["未だ名前がありません。あえて言うならピロボです。よろしく！"],"intonation":1,"action":0},
         {"id":9,"reply":["そっかぁ","うんうん","そうなんだ","へぇーーー","なるほどー"],"intonation":0,"action":0},
         {"id":10,"reply":["おやすみ"],"intonation":0,"action":0},
-        {"id":11,"reply":["ここはたぶん%sです"],"intonation":0,"action":0}
+        {"id":11,"reply":["ここはたぶん%sです"],"intonation":0,"action":0},
+        {"id":12,"reply":["ごめーん、気を悪くした？"],"intonation":3,"action":0},
+        {"id":13,"reply":["ありがとう"],"intonation":1,"action":0}
     ]
 }
