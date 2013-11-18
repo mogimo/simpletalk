@@ -35,9 +35,11 @@ public class IntegratedEngine implements Engine {
             mListener.onResult(null);
         }
 
-        for (SimpleToken token : tokens) {
-            if (DEBUG) Log.d(TAG, "surface="+token.getSurface());
-            if (DEBUG) Log.d(TAG, "part of speech="+token.getPartOfSpeech());
+        if (DEBUG) {
+            for (SimpleToken token : tokens) {
+                Log.d(TAG, "surface="+token.getSurface());
+                Log.d(TAG, "part of speech="+token.getPartOfSpeech());
+            }
         }
 
         AnalyzerTask task = new AnalyzerTask();

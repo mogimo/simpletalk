@@ -11,7 +11,7 @@
         {"id":6,"reply":["こんにちわ"],"intonation":1,"action":0},
         {"id":7,"reply":["yyyy'年'MM'月'dd'日'E'曜日'です"],"intonation":0,"action":0},
         {"id":8,"reply":["未だ名前がありません。あえて言うならピロボです。よろしく！"],"intonation":1,"action":0},
-        {"id":9,"reply":["そっかぁ","うんうん","そうなんだ","ほぉほぉ","へぇーーー","なるほどー"],"intonation":0,"action":0},
+        {"id":9,"reply":["そっかぁ","うんうん","そうなんだ","へぇーーー","なるほどー"],"intonation":0,"action":0},
         {"id":10,"reply":["おやすみ"],"intonation":0,"action":0}
     ]
 }

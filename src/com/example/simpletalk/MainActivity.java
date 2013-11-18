@@ -182,7 +182,7 @@ public class MainActivity extends Activity
             if (frameSize < minBufSize)
                 frameSize = minBufSize;
             mTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                    16000, 
+                    16000,
                     AudioFormat.CHANNEL_CONFIGURATION_MONO,
                     AudioFormat.ENCODING_PCM_16BIT,
                     frameSize,
@@ -203,7 +203,6 @@ public class MainActivity extends Activity
 
         String version = HIKARI.GetVersion();
         Log.d(TAG, "Engine: " + version + "\n");
-
         if (readLicence()) {
             loadDB();
         }
@@ -294,7 +293,7 @@ public class MainActivity extends Activity
         Log.d(TAG, "Load license file successfully");
         return true;
     }
-    
+
     private boolean loadDB() {
         AssetManager as = getResources().getAssets();
         int ret = 0;
@@ -336,6 +335,7 @@ public class MainActivity extends Activity
     public void onMarkerReached(AudioTrack track) {
         isTalking = false;
         Log.d(TAG, "marker state="+track.getPlayState());
+        mTrack.stop();
     }
 
     @Override
@@ -371,8 +371,9 @@ public class MainActivity extends Activity
             if (DEBUG) Log.d(TAG, "TextToBufferRTN=" + ret + "(" + flag + ") length=" + length);
             flag = FLAG_ANOTHRE_FRAME;
         } while (ret == 0);
-        mTrack.setPositionNotificationPeriod(length);
-        //mTrack.setNotificationMarkerPosition(length);
+        //FIXME: doesn't work...
+        mTrack.setNotificationMarkerPosition(length);
+        //mTrack.setPositionNotificationPeriod(length);
         mTrack.flush();
         mTrack.stop();
     }
