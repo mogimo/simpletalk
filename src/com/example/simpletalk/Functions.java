@@ -1,5 +1,6 @@
 package com.example.simpletalk;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -12,6 +13,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 
 public class Functions {
     private static final String DB_FILE = "functions.txt";
@@ -20,13 +25,14 @@ public class Functions {
     /* command ids */
     private static final int COMMAND_SELF_INTRO = 1;
     private static final int COMMAND_DATE = 2;
+    private static final int COMMAND_LOCATION = 3;
 
     /* functions JSON data */
     private String mData = null;
     /* tag words in the speech */
     private List<String> mTargets = new ArrayList<String>();
 
-    /* search word in phrase */
+    /* search word in a phrase */
     private boolean searchSynonym(JSONObject phrase, String word) {
         boolean found = false;
         if (phrase == null || word == null) {
@@ -147,6 +153,9 @@ public class Functions {
         return ret;
     }
 
+    /*
+     * for Calendar/Date command
+     */
     private Calendar getDate(Context context, String option) {
         Locale locale = context.getResources().getConfiguration().locale;
         Calendar cal = Calendar.getInstance(locale);
@@ -159,10 +168,46 @@ public class Functions {
         }
         return cal;
     }
+
     private String getDateString(Context context, String template, String option) {
         Locale locale = context.getResources().getConfiguration().locale;
         SimpleDateFormat format = new SimpleDateFormat(template, locale);
         return format.format(getDate(context, option).getTime());
+    }
+
+    /*
+     * for Location command
+     */
+    public String getCurrentLocation(Context context) {
+        String message = null;
+        Locale locale = context.getResources().getConfiguration().locale;
+        Geocoder geocoder = new Geocoder(context, locale);
+        LocationManager locMan =
+            (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+
+        Location loc = locMan.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (loc == null) {
+            loc = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }
+        if (loc != null) {
+            double latitude = loc.getLatitude();
+            double longtitude = loc.getLongitude();
+            StringBuilder builder = new StringBuilder();
+            try {
+                List<Address> addrs = geocoder.getFromLocation(latitude, longtitude, 1);
+                for (Address addr : addrs){
+                    int max = addr.getMaxAddressLineIndex();
+                    for (int i = 0; i<=max; i++){
+                        builder.append(addr.getAddressLine(i));
+                        builder.append(" ");
+                    }
+                }
+            } catch(IOException e){
+                e.printStackTrace();
+            }
+            message = builder.toString();
+        }
+        return message;
     }
 
     public String answer(Context context, List<SimpleToken> tokens) {
@@ -178,6 +223,15 @@ public class Functions {
                     String template = Response.getReplyWord(context, getResponseId(function));
                     String option = getOption(function);
                     answer = getDateString(context, template, option);
+                    break;
+                case COMMAND_LOCATION:
+                    String location = getCurrentLocation(context);
+                    if (location != null) {
+                        String format = Response.getReplyWord(context, getResponseId(function));
+                        answer = String.format(format, location);
+                    } else {
+                        answer = context.getString(R.string.error_location);
+                    }
                     break;
                 default:
                     //answer = context.getString(R.string.please_again);

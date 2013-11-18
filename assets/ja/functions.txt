@@ -9,11 +9,14 @@
         {"synonym":["今日","本日","今"],"tag":"today"},
         {"synonym":["明日","あす","あした","みょうにち"],"tag":"tomorrow"},
         {"synonym":["明後日"],"tag":"dayaftertomorrow"},
-        {"synonym":["昨日","きのう","きんのう"],"tag":"yesterday"}
+        {"synonym":["昨日","きのう","きんのう"],"tag":"yesterday"},
+        {"synonym":["ここ"],"tag":"here"},
+        {"synonym":["場所","住所","どこ"],"tag":"location"}
     ],
     "function":[
         {"targets":["who","you"],"command":1,"reply":8},
         {"targets":["what","date"],"option":["today","tomorrow","dayaftertomorrow","yesterday"],"command":2,"reply":7},
+        {"targets":["here","location"],"command":3,"reply":11},
         {"targets":["who"],"command":1,"reply":8}
     ]
 }
