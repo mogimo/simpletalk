@@ -23,7 +23,7 @@ public class IntegratedEngine implements Engine {
         this.mContext = context;
 
         mGreeting = new Greeting();
-        mFunction = new Functions();
+        mFunction = new Functions(context);
         mParrot = new Parrot();
     }
 
@@ -69,12 +69,21 @@ public class IntegratedEngine implements Engine {
         return Utils.addEmotionTag(message, id);
     }
 
+    private String appendOwnerName() {
+        return String.format(
+                mContext.getString(R.string.owner_connector),
+                mFunction.getOwnerName());
+    }
+
     private String analyze(List<SimpleToken> tokens) {
         String response = null;
 
         // Greeting
         if (mGreeting != null) {
             response = mGreeting.greeting(mContext, tokens);
+            if ((response != null) && !mFunction.isUnknownOwner()) {
+                response = response + appendOwnerName();
+            }
         }
         // Parrot
         if (response == null && mParrot != null) {

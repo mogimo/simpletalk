@@ -1,10 +1,16 @@
 package com.example.simpletalk;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -17,8 +23,13 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.util.Log;
 
 public class Functions {
+    private final static boolean DEBUG = BuildConfig.DEBUG;
+    private final static String TAG = "SimpleTalk";
+
+    private static final String SETTING_FILE = "setting.txt";
     private static final String DB_FILE = "functions.txt";
     private static final int FORMAT_VERSION = 3;
 
@@ -27,12 +38,128 @@ public class Functions {
     private static final int COMMAND_DATE = 2;
     private static final int COMMAND_LOCATION = 3;
 
+    private Context mContext;
+    /* setting JSON data */
+    private String mSettings = null;
+    private static final String OWNER_TAG = "owner";
+
     /* functions JSON data */
     private String mData = null;
     /* tag words in the speech */
     private List<String> mTargets = new ArrayList<String>();
 
-    /* search word in a phrase */
+    private enum Conversation {NONE, OWNERINFO};
+    private Conversation mConvState = Conversation.NONE;
+
+    private String mOwnerName = null;
+
+    public Functions(Context context) {
+        this.mContext = context;
+        loadSettings();
+    }
+
+    private void loadSettings() {
+        try {
+            String line;
+            InputStream in = mContext.openFileInput(SETTING_FILE);
+            BufferedReader reader= new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            StringBuilder builder = new StringBuilder();
+            while(null != (line = reader.readLine())){
+                builder.append(line);
+            }
+            mSettings = builder.toString();
+            if (DEBUG) Log.d(TAG, "loaded setting=" + mSettings);
+
+            JSONObject json = new JSONObject(mSettings);
+            mOwnerName = json.getString(OWNER_TAG);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            if (DEBUG) Log.d(TAG, String.format("%s is not exist", SETTING_FILE));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveSettings() {
+        if (DEBUG) Log.d(TAG, "save setting");
+        if (mSettings != null && !mSettings.isEmpty()) {
+            OutputStream out;
+            try {
+                out = mContext.openFileOutput(SETTING_FILE, Context.MODE_PRIVATE);
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, "UTF-8"));
+                writer.append(mSettings);
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void createSettings(String name, String value) {
+        JSONObject data = new JSONObject();
+        try {
+            data.put(name, value);
+            mSettings = data.toString();
+            if (DEBUG) Log.d(TAG, "create setting=" + mSettings);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        saveSettings();
+    }
+
+    private void updateSettings(String name, String value) {
+        if (mSettings == null) {
+            createSettings(name, value);
+            return;
+        }
+        JSONObject data = null;
+        try {
+            data = new JSONObject(mSettings);
+        } catch (JSONException e) {
+            if (DEBUG) Log.d(TAG, "mSettings is empty");
+            createSettings(name, value);
+            return;
+        }
+        try {
+            data.put(name, value);
+            mSettings = data.toString();
+            if (DEBUG) Log.d(TAG, "update setting=" + mSettings);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        saveSettings();
+    }
+
+    public boolean isUnknownOwner() {
+        boolean unknown = (mOwnerName == null) || mOwnerName.isEmpty();
+        if (DEBUG) Log.d(TAG, "isUnknownOwner=" + unknown);
+        return unknown ? true : false;
+    }
+
+    public String getOwnerName() {
+        return mOwnerName;
+    }
+
+    public void setOwnerName(final String name) {
+        if (!name.isEmpty()) {
+            mOwnerName = name;
+            updateSettings(OWNER_TAG, name);
+        }
+    }
+
+    public void setConversationState(Conversation mode) {
+        if (DEBUG) Log.d(TAG, "ConvState changed: mode=" + mode);
+        mConvState = mode;
+    }
+
+    public Conversation getConversationState() {
+        return mConvState;
+    }
+
+    /*
+     * search word in a phrase
+     */
     private boolean searchSynonym(JSONObject phrase, String word) {
         boolean found = false;
         if (phrase == null || word == null) {
@@ -52,7 +179,9 @@ public class Functions {
         return found;
     }
 
-    /* test whether all words in mTarges are contained in targets */
+    /*
+     * test whether all words in mTarges are contained in targets
+     */
     private boolean matchTargets(JSONObject function) {
         boolean match = false;
         if (function == null || mTargets.size() == 0) {
@@ -184,7 +313,6 @@ public class Functions {
         Geocoder geocoder = new Geocoder(context, locale);
         LocationManager locMan =
             (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
-
         Location loc = locMan.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if (loc == null) {
             loc = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -210,6 +338,25 @@ public class Functions {
         return message;
     }
 
+    private String getProperNoun(Context context, List<SimpleToken> tokens) {
+        StringBuilder noun = new StringBuilder();
+        // 名詞
+        String NOUN = context.getResources().getString(R.string.noun);
+        // 固有名詞
+        String PROPER_NOUN = context.getResources().getString(R.string.proper_noun);
+        // 人名
+        String PERSON_NAME = context.getResources().getString(R.string.person_name);
+        for (SimpleToken token : tokens) {
+            String pos = token.getPartOfSpeech();
+            if (pos.contains(NOUN) &&
+                    pos.contains(PERSON_NAME) &&
+                    pos.contains(PROPER_NOUN)) {
+                noun.append(token.getSurface());
+            }
+        }
+        return noun.toString();
+    }
+
     public String answer(Context context, List<SimpleToken> tokens) {
         String answer = null;
 
@@ -218,16 +365,23 @@ public class Functions {
             switch (getCommandId(function)) {
                 case COMMAND_SELF_INTRO:
                     answer = Response.getReplyWord(context, getResponseId(function));
+                    if (isUnknownOwner() &&
+                            (getConversationState() == Conversation.NONE)) {
+                        answer = answer + context.getString(R.string.who_are_you);
+                        setConversationState(Conversation.OWNERINFO);
+                    }
                     break;
                 case COMMAND_DATE:
-                    String template = Response.getReplyWord(context, getResponseId(function));
+                    String template = Response.getReplyWord(context,
+                            getResponseId(function));
                     String option = getOption(function);
                     answer = getDateString(context, template, option);
                     break;
                 case COMMAND_LOCATION:
                     String location = getCurrentLocation(context);
                     if (location != null) {
-                        String format = Response.getReplyWord(context, getResponseId(function));
+                        String format = Response.getReplyWord(context,
+                                getResponseId(function));
                         answer = String.format(format, location);
                     } else {
                         answer = context.getString(R.string.error_location);
@@ -236,6 +390,18 @@ public class Functions {
                 default:
                     //answer = context.getString(R.string.please_again);
                     break;
+            }
+        } else {
+            if (getConversationState() == Conversation.OWNERINFO) {
+                setOwnerName(getProperNoun(context, tokens));
+                if (!isUnknownOwner()) {
+                    setConversationState(Conversation.NONE);
+                    answer = String.format(
+                            context.getString(R.string.isnt_it),
+                            getOwnerName());
+                } else {
+                    answer = context.getString(R.string.who_are_you_again);
+                }
             }
         }
         return answer;

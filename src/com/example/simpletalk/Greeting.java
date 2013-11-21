@@ -75,7 +75,7 @@ public final class Greeting {
                          }
                      }
                      if (found) {
-                         response = phrase.getInt("response");
+                         response = phrase.getInt("reply");
                          break;
                      }
                  }

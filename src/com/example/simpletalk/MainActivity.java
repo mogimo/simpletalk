@@ -27,8 +27,7 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.widget.TextView;
 
-public class MainActivity extends Activity
-        implements Engine.ResponseListener, AudioTrack.OnPlaybackPositionUpdateListener {
+public class MainActivity extends Activity implements Engine.ResponseListener{
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk";
 
@@ -44,7 +43,7 @@ public class MainActivity extends Activity
     private static final int FLAG_FIRST_FRAME = 0;
     private static final int FLAG_ANOTHRE_FRAME = 1;
 
-    private final static boolean LOGGING_ON = true;
+    private final static boolean LOGGING_ON = false;
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
     private boolean isRecogniezrWorking = false;
@@ -162,10 +161,15 @@ public class MainActivity extends Activity
         }
     }
 
-    private void messageRetry() {
-        if (DEBUG) Log.d(TAG, "send retry msg!");
+    private void messageRetry(int expandDelayTimes) {
+        long delay = SPEECH_DURATION * expandDelayTimes;
         mHandler.removeMessages(MSG_SPEECH_AGAIN);
-        mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, SPEECH_DURATION);
+        mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, delay);
+        if (DEBUG) Log.d(TAG, "send retry msg! delay=" + delay);
+    }
+
+    private void messageRetry() {
+        messageRetry(1);
     }
 
     private void createAudioTrack() {
@@ -187,7 +191,7 @@ public class MainActivity extends Activity
                     AudioFormat.ENCODING_PCM_16BIT,
                     frameSize,
                     AudioTrack.MODE_STREAM);
-            mTrack.setPlaybackPositionUpdateListener(this);
+            mTrack.setStereoVolume(AudioTrack.getMaxVolume(), AudioTrack.getMaxVolume());
         }
     }
 
@@ -331,18 +335,6 @@ public class MainActivity extends Activity
         return true;
     }
 
-    @Override
-    public void onMarkerReached(AudioTrack track) {
-        isTalking = false;
-        Log.d(TAG, "marker state="+track.getPlayState());
-        mTrack.stop();
-    }
-
-    @Override
-    public void onPeriodicNotification(AudioTrack track) {
-        Log.d(TAG, "periodic state="+track.getPlayState());
-    }
-
     private void talk(String text) {
         if (text == null) {
             Log.e(TAG, "talk text is null");
@@ -354,12 +346,10 @@ public class MainActivity extends Activity
         }
 
         if (DEBUG) Log.d(TAG, "Now talking: " + text + "\n");
-        //isTalking = true;
 
         byte[] audioData = null;
         int flag = FLAG_FIRST_FRAME;
-        int ret = 0;
-        int length = 0;
+        int ret = 0, length = 0, repeat = 0;
         mTrack.play();
         do {
             audioData = HIKARI.TextToBuffer(0, text, flag, -1, -1, -1, -1, 1, -1);
@@ -370,10 +360,10 @@ public class MainActivity extends Activity
             }
             if (DEBUG) Log.d(TAG, "TextToBufferRTN=" + ret + "(" + flag + ") length=" + length);
             flag = FLAG_ANOTHRE_FRAME;
+            repeat++;
         } while (ret == 0);
-        //FIXME: doesn't work...
-        mTrack.setNotificationMarkerPosition(length);
-        //mTrack.setPositionNotificationPeriod(length);
+
+        messageRetry(repeat/2);
         mTrack.flush();
         mTrack.stop();
     }
