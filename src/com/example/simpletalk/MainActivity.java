@@ -27,11 +27,12 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.widget.TextView;
 
-public class MainActivity extends Activity implements Engine.ResponseListener{
+public class MainActivity extends Activity
+        implements Engine.ResponseListener, AudioTrack.OnPlaybackPositionUpdateListener {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk";
 
-    private final static int SPEECH_DURATION = 2000;
+    private final static int SPEECH_DURATION = 1800;
     private final static int MSG_SPEECH_AGAIN = 0;
     private final static float SCORE_THRESHOLD = 0.3f;
 
@@ -47,7 +48,6 @@ public class MainActivity extends Activity implements Engine.ResponseListener{
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
     private boolean isRecogniezrWorking = false;
-    private boolean isTalking = false;
     private AudioTrack mTrack;
 
     private SpeechRecognizer mSpeechRecognizer;
@@ -148,7 +148,7 @@ public class MainActivity extends Activity implements Engine.ResponseListener{
             if (DEBUG) Log.d(TAG, "message comming: " + msg);
             switch (msg.what) {
                 case MSG_SPEECH_AGAIN:
-                    if (!isRecogniezrWorking && !isTalking) {
+                    if (!isRecogniezrWorking) {
                         startSpeechRecognize();
                     } else {
                         if (DEBUG) Log.d(TAG, "maybe still speaking or talking");
@@ -162,6 +162,9 @@ public class MainActivity extends Activity implements Engine.ResponseListener{
     }
 
     private void messageRetry(int expandDelayTimes) {
+        if (expandDelayTimes == 0) {
+            expandDelayTimes = 1;
+        }
         long delay = SPEECH_DURATION * expandDelayTimes;
         mHandler.removeMessages(MSG_SPEECH_AGAIN);
         mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, delay);
@@ -172,26 +175,40 @@ public class MainActivity extends Activity implements Engine.ResponseListener{
         messageRetry(1);
     }
 
+    @Override
+    public void onMarkerReached(AudioTrack track) {
+        Log.d(TAG, "onMarkerReached");
+        mTrack.stop();
+    }
+
+    @Override
+    public void onPeriodicNotification(AudioTrack track) {
+        Log.d(TAG, "onPeriodicNotification");
+    }
+
     private void createAudioTrack() {
         if (mTrack == null) {
             int minBufSize = AudioTrack.getMinBufferSize(
                     16000,
-                    AudioFormat.CHANNEL_CONFIGURATION_MONO,
+                    AudioFormat.CHANNEL_OUT_MONO,
                     AudioFormat.ENCODING_PCM_16BIT);
             // check frame size (3rd argument is -1)
             HIKARI.TextToBuffer(0, null, FLAG_SIZE_CHECK, -1, -1, -1, -1, -1, -1);
             int frameSize = HIKARI.TextToBufferRTN();
             Log.d(TAG, "minBufSize=" + minBufSize + " frameSize=" + frameSize);
             // adjust buffer size
-            if (frameSize < minBufSize)
+            if (frameSize < minBufSize) {
+                // getMinBufferSize以下じゃないと再生されないことがある
                 frameSize = minBufSize;
+            }
             mTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
                     16000,
-                    AudioFormat.CHANNEL_CONFIGURATION_MONO,
+                    AudioFormat.CHANNEL_OUT_MONO,
                     AudioFormat.ENCODING_PCM_16BIT,
                     frameSize,
                     AudioTrack.MODE_STREAM);
             mTrack.setStereoVolume(AudioTrack.getMaxVolume(), AudioTrack.getMaxVolume());
+            mTrack.setPlaybackPositionUpdateListener(this);
         }
     }
 
@@ -362,10 +379,11 @@ public class MainActivity extends Activity implements Engine.ResponseListener{
             flag = FLAG_ANOTHRE_FRAME;
             repeat++;
         } while (ret == 0);
-
-        messageRetry(repeat/2);
         mTrack.flush();
-        mTrack.stop();
+        mTrack.stop(); // ここでstopしないとうまくflushされず遅延することがある
+        mTrack.setNotificationMarkerPosition(length);
+
+        messageRetry();
     }
 
     private void supportiveResponse() {

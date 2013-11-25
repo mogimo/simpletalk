@@ -29,6 +29,8 @@ public class Functions {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk";
 
+    private static Functions sFunction;
+
     private static final String SETTING_FILE = "setting.txt";
     private static final String DB_FILE = "functions.txt";
     private static final int FORMAT_VERSION = 3;
@@ -37,6 +39,9 @@ public class Functions {
     private static final int COMMAND_SELF_INTRO = 1;
     private static final int COMMAND_DATE = 2;
     private static final int COMMAND_LOCATION = 3;
+    private static final int COMMAND_CLEAR_SETTING = 4;
+    private static final int COMMAND_YES = 5;
+    private static final int COMMAND_NO = 6;
 
     private Context mContext;
     /* setting JSON data */
@@ -48,12 +53,19 @@ public class Functions {
     /* tag words in the speech */
     private List<String> mTargets = new ArrayList<String>();
 
-    private enum Conversation {NONE, OWNERINFO};
+    public enum Conversation {NONE, OWNERINFO, CLEARSETTING};
     private Conversation mConvState = Conversation.NONE;
 
     private String mOwnerName = null;
 
-    public Functions(Context context) {
+    public static Functions createInstance(Context context) {
+        if (sFunction == null) {
+            sFunction = new Functions(context);
+        }
+        return sFunction;
+    }
+
+    private Functions(Context context) {
         this.mContext = context;
         loadSettings();
     }
@@ -108,7 +120,7 @@ public class Functions {
         saveSettings();
     }
 
-    private void updateSettings(String name, String value) {
+    private void updateSetting(String name, String value) {
         if (mSettings == null) {
             createSettings(name, value);
             return;
@@ -124,6 +136,7 @@ public class Functions {
         try {
             data.put(name, value);
             mSettings = data.toString();
+            //mOwnerName = data.getString(OWNER_TAG);
             if (DEBUG) Log.d(TAG, "update setting=" + mSettings);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -144,8 +157,14 @@ public class Functions {
     public void setOwnerName(final String name) {
         if (!name.isEmpty()) {
             mOwnerName = name;
-            updateSettings(OWNER_TAG, name);
+            updateSetting(OWNER_TAG, name);
         }
+    }
+
+    public void clearSettings() {
+        // currently only owner name setting
+        mOwnerName = null;
+        updateSetting(OWNER_TAG, null);
     }
 
     public void setConversationState(Conversation mode) {
@@ -376,6 +395,7 @@ public class Functions {
                             getResponseId(function));
                     String option = getOption(function);
                     answer = getDateString(context, template, option);
+                    setConversationState(Conversation.NONE);
                     break;
                 case COMMAND_LOCATION:
                     String location = getCurrentLocation(context);
@@ -385,6 +405,26 @@ public class Functions {
                         answer = String.format(format, location);
                     } else {
                         answer = context.getString(R.string.error_location);
+                    }
+                    setConversationState(Conversation.NONE);
+                    break;
+                case COMMAND_CLEAR_SETTING:
+                    if (getConversationState() == Conversation.NONE) {
+                        setConversationState(Conversation.CLEARSETTING);
+                        answer = Response.getReplyWord(context, getResponseId(function));
+                    }
+                    break;
+                case COMMAND_YES:
+                    if (getConversationState() == Conversation.CLEARSETTING) {
+                        clearSettings();
+                        answer = Response.getReplyWord(context, getResponseId(function));
+                        setConversationState(Conversation.NONE);
+                    }
+                    break;
+                case COMMAND_NO:
+                    if (getConversationState() == Conversation.CLEARSETTING) {
+                        answer = Response.getReplyWord(context, getResponseId(function));
+                        setConversationState(Conversation.NONE);
                     }
                     break;
                 default:

@@ -17,6 +17,10 @@
         {"id":12,"reply":["ごめーん、気を悪くした？"],"intonation":3,"action":0},
         {"id":13,"reply":["ありがとう"],"intonation":1,"action":0},
         {"id":14,"reply":["お疲れ様","大変だったね","僕は元気だよ！","こっちも疲れるよ"],"intonation":0,"action":0},
-        {"id":15,"reply":["よろしく！"],"intonation":1,"action":0}
+        {"id":15,"reply":["よろしく！"],"intonation":1,"action":0},
+        {"id":16,"reply":["寝るの？","寝れば","寝ちゃダメ！"],"intonation":0,"action":0},
+        {"id":17,"reply":["設定を削除しますか？"],"intonation":0,"action":0},
+        {"id":18,"reply":["設定を削除しました"],"intonation":0,"action":0},
+        {"id":19,"reply":["設定の削除を辞めました"],"intonation":0,"action":0}
     ]
 }

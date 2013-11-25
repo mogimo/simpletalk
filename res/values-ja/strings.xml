@@ -8,10 +8,10 @@
     <string name="error_again">ごめん、なんか調子が悪い</string>
     <string name="low_score">ごめん、ちゃんと聞き取れなかった</string>
     <string name="please_retry">ん？なんって言った？</string>
-    <string name="error_location">位置情報サービス設定をONにしてください</string>
+    <string name="error_location">位置情報サービス設定をオンしてください</string>
 
     <string name="owner_connector">。%sさん</string>
-    <string name="who_are_you">。ところでご主人様、あなたのお名前は？</string>
+    <string name="who_are_you">。ところで、あなたのお名前は？</string>
     <string name="who_are_you_again">あなたの名前を教えて下さい？</string>
     <string name="isnt_it">%sさん、よろしく。</string>
 
@@ -21,10 +21,4 @@
     <string name="noun">名詞</string>
     <string name="proper_noun">固有名詞</string>
     <string name="person_name">人名</string>
-
-    <string name="hello">こんにちは;こんにちわ;こんちは;こんちわ</string>
-    <string name="evening">こんばんは;こんばんわ</string>
-    <string name="morning">おはよう;おはようございます</string>
-    <string name="hi">はい;はーい;へい;へーい</string>
-    <string name="yah">やあ;やぁ;やっ</string>
 </resources>

@@ -11,12 +11,19 @@
         {"synonym":["明後日"],"tag":"dayaftertomorrow"},
         {"synonym":["昨日","きのう","きんのう"],"tag":"yesterday"},
         {"synonym":["ここ"],"tag":"here"},
-        {"synonym":["場所","住所","どこ"],"tag":"location"}
+        {"synonym":["場所","住所","どこ"],"tag":"location"},
+        {"synonym":["設定","セッティング"],"tag":"setting"},
+        {"synonym":["消去","削除","抹消"],"tag":"clear"},
+        {"synonym":["はい","うん","イエス","オッケー","お願い","よろしく"],"tag":"yes"},
+        {"synonym":["いいえ","いや","ダメ","ノー"],"tag":"no"}
     ],
     "function":[
         {"targets":["who","you"],"command":1,"reply":8},
         {"targets":["what","date"],"option":["today","tomorrow","dayaftertomorrow","yesterday"],"command":2,"reply":7},
         {"targets":["here","location"],"command":3,"reply":11},
-        {"targets":["who"],"command":1,"reply":8}
+        {"targets":["who"],"command":1,"reply":8},
+        {"targets":["setting","clear"],"command":4,"reply":17},
+        {"targets":["yes"],"command":5,"reply":18},
+        {"targets":["no"],"command":6,"reply":19}
     ]
 }

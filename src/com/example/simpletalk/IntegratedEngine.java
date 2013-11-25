@@ -23,7 +23,7 @@ public class IntegratedEngine implements Engine {
         this.mContext = context;
 
         mGreeting = new Greeting();
-        mFunction = new Functions(context);
+        mFunction = Functions.createInstance(context);
         mParrot = new Parrot();
     }
 
