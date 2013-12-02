@@ -83,7 +83,9 @@ public class Functions {
             if (DEBUG) Log.d(TAG, "loaded setting=" + mSettings);
 
             JSONObject json = new JSONObject(mSettings);
-            mOwnerName = json.getString(OWNER_TAG);
+            if (json.has(OWNER_TAG)) {
+                mOwnerName = json.getString(OWNER_TAG);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (FileNotFoundException e) {
