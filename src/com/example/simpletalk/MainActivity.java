@@ -1,34 +1,25 @@
 
 package com.example.simpletalk;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import kr.co.voiceware.HIKARI;
-
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 
-public class MainActivity extends Activity
-        implements Engine.ResponseListener, AudioTrack.OnPlaybackPositionUpdateListener {
+public class MainActivity extends Activity implements Engine.ResponseListener {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk";
 
@@ -36,24 +27,21 @@ public class MainActivity extends Activity
     private final static int MSG_SPEECH_AGAIN = 0;
     private final static float SCORE_THRESHOLD = 0.3f;
 
-    // for VoiceTEXT
-    private final byte[] mLicense =  new byte[2048];
-    private static final String HIKARI_VDB = "tts_single_db_hikari.vtdb";
-    private static final String VDB_PATH = "/sdcard/";
-    private static final int FLAG_SIZE_CHECK = -1;
-    private static final int FLAG_FIRST_FRAME = 0;
-    private static final int FLAG_ANOTHRE_FRAME = 1;
-
     private final static boolean LOGGING_ON = false;
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
+    static boolean isUseHOYA = true;
+
     private boolean isRecogniezrWorking = false;
-    private AudioTrack mTrack;
 
     private SpeechRecognizer mSpeechRecognizer;
     private RecognitionServiceListener mListener;
+
+    private VoiceEngine mVoice;
+
     private TextView mTextView;
     private RepeatHandler mHandler = new RepeatHandler();
+
     private Engine mEngine;
 
     private class RecognitionServiceListener implements RecognitionListener {
@@ -79,11 +67,11 @@ public class MainActivity extends Activity
             switch (error) {
                 case SpeechRecognizer.ERROR_NETWORK:
                 case SpeechRecognizer.ERROR_SERVER:
-                    talk(Utils.addEmotionTag(getString(R.string.error_again),
+                    mVoice.talk(Utils.addEmotionTag(getString(R.string.error_again),
                             Utils.EMOTION_SADNESS));
                     break;
                 case SpeechRecognizer.ERROR_NO_MATCH:
-                    talk(getString(R.string.please_retry));
+                    mVoice.talk(getString(R.string.please_retry));
                     messageRetry();
                     break;
                 case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
@@ -94,7 +82,7 @@ public class MainActivity extends Activity
                     }
                     break;
                 default:
-                    talk(getString(R.string.please_again));
+                    mVoice.talk(getString(R.string.please_again));
                     messageRetry();
                     break;
             }
@@ -127,7 +115,7 @@ public class MainActivity extends Activity
             if (msg != null) {
                 mEngine.request(msg);
             } else {
-                talk(Utils.addEmotionTag(
+                mVoice.talk(Utils.addEmotionTag(
                         getString(R.string.low_score), Utils.EMOTION_SADNESS));
             }
 
@@ -162,9 +150,6 @@ public class MainActivity extends Activity
     }
 
     private void messageRetry(int expandDelayTimes) {
-        if (expandDelayTimes == 0) {
-            expandDelayTimes = 1;
-        }
         long delay = SPEECH_DURATION * expandDelayTimes;
         mHandler.removeMessages(MSG_SPEECH_AGAIN);
         mHandler.sendEmptyMessageDelayed(MSG_SPEECH_AGAIN, delay);
@@ -173,43 +158,6 @@ public class MainActivity extends Activity
 
     private void messageRetry() {
         messageRetry(1);
-    }
-
-    @Override
-    public void onMarkerReached(AudioTrack track) {
-        Log.d(TAG, "onMarkerReached");
-        mTrack.stop();
-    }
-
-    @Override
-    public void onPeriodicNotification(AudioTrack track) {
-        Log.d(TAG, "onPeriodicNotification");
-    }
-
-    private void createAudioTrack() {
-        if (mTrack == null) {
-            int minBufSize = AudioTrack.getMinBufferSize(
-                    16000,
-                    AudioFormat.CHANNEL_OUT_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT);
-            // check frame size (3rd argument is -1)
-            HIKARI.TextToBuffer(0, null, FLAG_SIZE_CHECK, -1, -1, -1, -1, -1, -1);
-            int frameSize = HIKARI.TextToBufferRTN();
-            Log.d(TAG, "minBufSize=" + minBufSize + " frameSize=" + frameSize);
-            // adjust buffer size
-            if (frameSize < minBufSize) {
-                // getMinBufferSize以下じゃないと再生されないことがある
-                frameSize = minBufSize;
-            }
-            mTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                    16000,
-                    AudioFormat.CHANNEL_OUT_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT,
-                    frameSize,
-                    AudioTrack.MODE_STREAM);
-            mTrack.setStereoVolume(AudioTrack.getMaxVolume(), AudioTrack.getMaxVolume());
-            mTrack.setPlaybackPositionUpdateListener(this);
-        }
     }
 
     @Override
@@ -222,19 +170,20 @@ public class MainActivity extends Activity
         mListener = new RecognitionServiceListener();
         mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
 
-        String version = HIKARI.GetVersion();
-        Log.d(TAG, "Engine: " + version + "\n");
-        if (readLicence()) {
-            loadDB();
+        // Text to speech engine
+        if (isUseHOYA) {
+            mVoice = new HoyaVoiceText(this);
+        } else {
+            mVoice = new AITalk(this);
         }
-
-        createAudioTrack();
+        mVoice.init();
 
         mEngine = new IntegratedEngine(this);
         mEngine.setResponseListener(this);
     }
 
     public void onResume() {
+        Log.v(TAG, "onResume()");
         super.onResume();
 
         // for speech recognizer
@@ -245,6 +194,7 @@ public class MainActivity extends Activity
     }
 
     public void onPause() {
+        Log.v(TAG, "onPause()");
         super.onPause();
         mHandler.removeMessages(MSG_SPEECH_AGAIN);
 
@@ -296,100 +246,9 @@ public class MainActivity extends Activity
                 results.get(0) : null;
     }
 
-    //
-    // for Speech Synthesis
-    //
-    private boolean readLicence() {
-        int ret = 0;
-        try {
-            ret =  getResources().openRawResource(R.raw.verification).read(mLicense);
-        } catch(Exception ex) {
-            Log.e(TAG, "ERROR: fail to load license file");
-            ret = -1;
-        }
-        if (ret == -1) {
-            Log.e(TAG, "ERROR: fail to load license file");
-            return false;
-        }
-        Log.d(TAG, "Load license file successfully");
-        return true;
-    }
-
-    private boolean loadDB() {
-        AssetManager as = getResources().getAssets();
-        int ret = 0;
-        try {
-            File file = new File(VDB_PATH + HIKARI_VDB);
-            if (!file.exists()) {
-                Log.d(TAG, "Load vdb file ...");
-                InputStream input = as.open(HIKARI_VDB);
-                FileOutputStream output = new FileOutputStream(file);
-                int DEFAULT_BUFFER_SIZE = 1024 * 4;
-                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                int n = 0;
-                while ((n = input.read(buffer)) != -1) {
-                  output.write(buffer, 0, n);
-                }
-                input.close();
-                output.close();
-                Log.d(TAG, "done");
-            } else {
-                Log.d(TAG, "vdb file already exists");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "\rERROR: fail to load database file");
-            ret = -1;
-        }
-        // load tts
-        ret = HIKARI.LOADTTS(VDB_PATH, mLicense);
-        Log.d(TAG, "Load tts engine ...");
-        if (ret != 0) {
-            Log.e(TAG, "\rERROR: LOADTTS error=" + ret);
-            return false;
-        }
-        Log.d(TAG, "done");
-        return true;
-    }
-
-    private void talk(String text) {
-        if (text == null) {
-            Log.e(TAG, "talk text is null");
-            supportiveResponse();
-        }
-        if (mTrack == null) {
-            Log.e(TAG, "AudioTrack is something wrong...");
-            return;
-        }
-
-        if (DEBUG) Log.d(TAG, "Now talking: " + text + "\n");
-
-        byte[] audioData = null;
-        int flag = FLAG_FIRST_FRAME;
-        int ret = 0, length = 0, repeat = 0;
-        mTrack.play();
-        do {
-            audioData = HIKARI.TextToBuffer(0, text, flag, -1, -1, -1, -1, 1, -1);
-            ret = HIKARI.TextToBufferRTN();
-            if (audioData != null) {
-                length = audioData.length;
-                mTrack.write(audioData, 0, length);
-            }
-            if (DEBUG) Log.d(TAG, "TextToBufferRTN=" + ret + "(" + flag + ") length=" + length);
-            flag = FLAG_ANOTHRE_FRAME;
-            repeat++;
-        } while (ret == 0);
-        mTrack.flush();
-        mTrack.stop(); // ここでstopしないとうまくflushされず遅延することがある
-        mTrack.setNotificationMarkerPosition(length);
-
-        messageRetry();
-    }
-
     private void supportiveResponse() {
         if (DEBUG) Log.d(TAG, "maybe not match any phrase!");
-        talk(Response.getSupportiveResponse(getApplicationContext()));
-        messageRetry();
+        mVoice.talk(Response.getSupportiveResponse(getApplicationContext()));
     }
 
     // get response from engine
@@ -398,9 +257,53 @@ public class MainActivity extends Activity
         if (LOGGING_ON) {
             logging(response);
         }
-        talk(response);
+        if (response == null) {
+            Log.e(TAG, "There is no answer to speak, so just reply supportive response");
+            supportiveResponse();
+        } else {
+            mVoice.talk(response);
+        }
+        messageRetry();
     }
 
+    /*
+     * Menu
+     */
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0,0,0,"Use HOYA");
+        menu.add(0,1,0,"Use AITalk");
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+        case 1:
+            if (isUseHOYA) {
+                mVoice.release();
+                mVoice = null;
+                mVoice = new AITalk(this);
+                mVoice.init();
+                isUseHOYA = false;
+            }
+            break;
+        case 0:
+        default:
+            if (!isUseHOYA) {
+                mVoice.release();
+                mVoice = null;
+                mVoice = new HoyaVoiceText(this);
+                mVoice.init();
+                isUseHOYA = true;
+            }
+            break;
+        }
+        messageRetry(0);
+        return true;
+    }    
+
+    /*
+     * Logging
+     */
     private void logging(String result) {
         Map<String, String> payload = new HashMap<String, String>();
         payload.put("id", mTextView.getText().toString());

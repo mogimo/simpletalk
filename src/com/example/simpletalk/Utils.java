@@ -42,6 +42,9 @@ public class Utils {
     public static final int EMOTION_ANGER = 2;
     public static final int EMOTION_SADNESS = 3;
     public static String addEmotionTag(String message, int emotion) {
+        if (!MainActivity.isUseHOYA) {
+            return message;
+        }
         final String HAPPINESS = "happiness";
         final String ANGER = "anger";
         final String SADNESS = "sadness";
