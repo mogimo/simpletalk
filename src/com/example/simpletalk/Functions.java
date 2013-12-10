@@ -27,7 +27,7 @@ import android.util.Log;
 
 public class Functions {
     private final static boolean DEBUG = BuildConfig.DEBUG;
-    private final static String TAG = "SimpleTalk";
+    private final static String TAG = "SimpleTalk:Function";
 
     private static Functions sFunction;
 

@@ -23,6 +23,6 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="98dp"
-        android:text="@string/text" />
+        android:text="@string/wait" />
 
 </RelativeLayout>

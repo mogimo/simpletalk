@@ -3,6 +3,7 @@
     <string name="app_name">SimpleTalk</string>
     <string name="action_settings">Settings</string>
     <string name="text">Lets talk!</string>
+    <string name="wait">Just wait</string>
     <string name="please_again">Please again</string>
 
     <string name="adjective">adjective</string>

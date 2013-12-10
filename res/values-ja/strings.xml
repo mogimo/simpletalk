@@ -3,6 +3,7 @@
     <string name="app_name">SimpleTalk</string>
     <string name="action_settings">Settings</string>
     <string name="text">お話しましょう</string>
+    <string name="wait">しばらくお待ちください</string>
 
     <string name="please_again">よく分からなかったので、もう一度お願い</string>
     <string name="error_again">ごめん、なんか調子が悪い</string>

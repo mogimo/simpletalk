@@ -8,7 +8,7 @@ import android.util.Log;
 
 public class IntegratedEngine implements Engine {
     private final static boolean DEBUG = BuildConfig.DEBUG;
-    private final static String TAG = "SimpleTalk";
+    private final static String TAG = "SimpleTalk:Engine";
     private ResponseListener mListener;
     private Context mContext;
 
