@@ -22,8 +22,9 @@ public class MainActivity extends Activity {
     private final static int SPEECH_DURATION = 1800;
     private final static int MSG_SPEECH_AGAIN = 0;
     private final static int MSG_RECOGNIZE_READY = 1;
+    private final static int MSG_RECOGNIZE_DONE = 2;
 
-    private final static boolean LOGGING_ON = false;
+    private final static boolean LOGGING_ON = true;
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
     private static boolean isUseGoogle = false;
@@ -84,7 +85,11 @@ public class MainActivity extends Activity {
 
         @Override
         public void onRecognize(String response, float score) {
-            if (DEBUG) Log.d(TAG, "result[" + score + "]=" + response);
+            String log = String.format("result[%f]=%s", score, response);
+            if (DEBUG) Log.d(TAG, log);
+            Message msg = mHandler.obtainMessage(MSG_RECOGNIZE_DONE);
+            msg.obj = log;
+            mHandler.sendMessage(msg);
             if (response != null) {
                 mEngine.request(response);
             } else {
@@ -133,6 +138,9 @@ public class MainActivity extends Activity {
                     break;
                 case MSG_RECOGNIZE_READY:
                     mTextView.setText(getString(R.string.text));
+                    break;
+                case MSG_RECOGNIZE_DONE:
+                    mTextView.setText((String)msg.obj);
                     break;
                 default:
                     break;
