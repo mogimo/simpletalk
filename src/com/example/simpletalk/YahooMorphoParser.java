@@ -5,29 +5,19 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.java.sen.dictionary.Token;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.Context;
 import android.util.Xml;
 
-@Deprecated
 public class YahooMorphoParser {
-    private static String ADJECTIVE;
-    private static String AUXILIARY_VERB;
-    private static String POSTPOSITION;
 
-    private int mCount = 0;
-    private List<String> mReadings = new ArrayList<String>();
-    private List<String> mPoses = new ArrayList<String>();
-
-    public YahooMorphoParser(Context context) {
-    	ADJECTIVE = context.getResources().getString(R.string.adjective);
-    	AUXILIARY_VERB = context.getResources().getString(R.string.auxiliary_verb);
-    	POSTPOSITION = context.getResources().getString(R.string.postposition);
-    }
-
-    public void parse(String xml) {
+    public static ArrayList<SimpleToken> parse(String xml) {
+        int count = 0;
+        ArrayList<SimpleToken> parsedTokens = new ArrayList<SimpleToken>();
         XmlPullParser parser = Xml.newPullParser();
         try {
             parser.setInput(new StringReader(xml));
@@ -42,7 +32,7 @@ public class YahooMorphoParser {
                     if (parser.getName().equals("ma_result")) {
                         // do nothing
                     } else if (parser.getName().equals("total_count")) {
-                        mCount = Integer.parseInt(parser.nextText());
+                        count = Integer.parseInt(parser.nextText());
                     } else if (parser.getName().equals("reading")) {
                         reading = parser.nextText();
                     } else if (parser.getName().equals("pos")) {
@@ -51,49 +41,24 @@ public class YahooMorphoParser {
                 } else if (eventType == XmlPullParser.END_TAG) {
                     if (parser.getName().equals("word")) {
                         if (reading != null & pos != null) {
-                            mReadings.add(reading);
+                            SimpleToken word = new SimpleToken();
+                            word.putSurface(reading);
                             reading = null;
-                            mPoses.add(pos);
+                            word.putPartOfSpeech(pos);
                             pos = null;
+                            parsedTokens.add(word);
                         }
                     }
                 }
                 eventType = parser.next();
             }
+            return parsedTokens;
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         } catch (NumberFormatException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    public String parrot() {
-        if (mCount < 2 || mPoses.size() < 1) {
-            return null;
-        }
-        int lastIndex = mPoses.size() - 1;
-        StringBuilder result = new StringBuilder();
-        int index = mPoses.lastIndexOf(ADJECTIVE);
-        if (index < 0) {
-            // not found
-            return null;
-        }
-        result.append(mReadings.get(index));
-        // next word
-        index++;
-        if (mPoses.get(index).equals(AUXILIARY_VERB)) {
-            result.append(mReadings.get(index));
-            // next word
-            index++;
-            if (mPoses.get(index).equals(POSTPOSITION) && lastIndex == index) {
-                result.append(mReadings.get(index));
-                return result.toString();
-            }
-        } else if (mPoses.get(index).equals(POSTPOSITION) && lastIndex == index) {
-            result.append(mReadings.get(index));
-            return result.toString();
         }
         return null;
     }
