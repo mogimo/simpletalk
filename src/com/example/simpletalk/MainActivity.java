@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
     private static boolean isUseGoogle = false;
-    private static boolean isUseHOYA = true;
+    private static boolean isUseHOYA = false;
 
     private TextView mTextView;
     private RepeatHandler mHandler = new RepeatHandler();
@@ -178,7 +178,8 @@ public class MainActivity extends Activity {
         if (isUseHOYA) {
             mVoice = new HoyaVoiceText(this);
         } else {
-            mVoice = new AITalk(this);
+            //mVoice = new AITalk(this);
+            mVoice = new TtsEngine(this);
         }
         mVoice.init();
 
@@ -213,8 +214,8 @@ public class MainActivity extends Activity {
      * Menu
      */
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0,0,0,"Use HOYA[Voice]");
-        menu.add(0,1,0,"Use AITalk[Voice]");
+        //menu.add(0,0,0,"Use HOYA[Voice]");
+        //menu.add(0,1,0,"Use AITalk[Voice]");
         menu.add(0,2,0,"Use Google[Recognize]");
         menu.add(0,3,0,"Use vGate[Recognize]");
         return true;
