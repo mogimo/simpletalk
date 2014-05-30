@@ -19,7 +19,7 @@ public class MainActivity extends Activity {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk:Activity";
 
-    private final static int SPEECH_DURATION = 1800;
+    private final static int SPEECH_DURATION = 5000;
     private final static int MSG_SPEECH_AGAIN = 0;
     private final static int MSG_RECOGNIZE_READY = 1;
     private final static int MSG_RECOGNIZE_DONE = 2;
