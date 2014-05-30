@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
     private TextView mTextView;
     private RepeatHandler mHandler = new RepeatHandler();
     private boolean isRecogniezrWorking = false;
+    private String mRecognizedStr;
 
     private Recognizer mSpeech;
     private RecognizerServiceListener mSpeechRecognizeListener = new RecognizerServiceListener();
@@ -78,14 +79,15 @@ public class MainActivity extends Activity {
         }
 
         @Override
-        public void onRecognize(String response, float score) {
-            String log = String.format("result[%f]=%s", score, response);
+        public void onRecognize(String sentence, float score) {
+            String log = String.format("result[%f]=%s", score, sentence);
             if (DEBUG) Log.d(TAG, log);
             Message msg = mHandler.obtainMessage(MSG_RECOGNIZE_DONE);
             msg.obj = log;
             mHandler.sendMessage(msg);
-            if (response != null) {
-                mEngine.request(response);
+            if (sentence != null) {
+                mRecognizedStr = sentence;
+                mEngine.request(sentence);
             } else {
                 mVoice.talk(addEmotionTag(
                         getString(R.string.low_score), Utils.EMOTION_SADNESS));
@@ -201,7 +203,7 @@ public class MainActivity extends Activity {
      */
     private void logging(String result) {
         Map<String, String> payload = new HashMap<String, String>();
-        payload.put("id", mTextView.getText().toString());
+        payload.put("id", mRecognizedStr);
         payload.put("value", result);
         LoggingTask task = new LoggingTask(GAE_LOGGING, payload);
         task.execute();
