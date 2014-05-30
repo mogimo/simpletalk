@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.util.Log;
 
 /**
  * Exact match phrase parser
@@ -14,6 +15,9 @@ import android.content.Context;
  *
  */
 public final class Greeting {
+    private final static boolean DEBUG = BuildConfig.DEBUG;
+    private final static String TAG = "SimpleTalk:Greeting";
+
     private static final String DB_FILE = "greeting.txt";
     /* greeting JSON data */
     private static String mData = null;
@@ -44,13 +48,26 @@ public final class Greeting {
         return null;
     }
 
+    public String greeting(Context context, String word) {
+        int category = 0;
+        if ((category = getResponseId(context, word)) != 0) {
+            String str = Response.getReplyWord(context, category);
+            int emotion = 0;
+            if ((emotion = Response.getIntonation(context, category)) != 0) {
+                str = Utils.addEmotionTag(str, emotion);
+            }
+            return str;
+        }
+        return null;
+    }
+
     /**
      * Return the response word for given greeting
      * @param context context
      * @param text the greeting word
      * @return the response id for the parameter
      */
-     private int getResponseId(Context context, String word) {
+     private int getResponseId(Context context, String sentence) {
          if (mData == null) {
              mData = Utils.loadAssetDB(context, DB_FILE);
          }
@@ -69,13 +86,13 @@ public final class Greeting {
                      JSONArray words = phrase.getJSONArray("words");
                      // [word, word, ..., word]
                      for (int k=0; k<words.length(); k++) {
-                         if (words.getString(k).equals(word)) {
+                         if (sentence.contains(words.getString(k))) {
                              found = true;
                              break;
                          }
                      }
                      if (found) {
-                         response = phrase.getInt("reply");
+                         response = phrase.getInt("category");
                          break;
                      }
                  }

@@ -16,7 +16,7 @@ public class Response {
     private static final int FORMAT_VERSION = 1;
     private static JSONArray mResponses = null;
 
-    private static int SUPPORTIVE_RESPONSE_ID = 9;
+    private static int SUPPORTIVE_RESPONSE_ID = 0;
 
     private static JSONArray getResponseData(Context context) {
         String data = Utils.loadAssetDB(context, dbFile);
@@ -33,13 +33,14 @@ public class Response {
         return responses;
     }
 
-    private static JSONObject getResponse(int id) {
+    private static JSONObject getResponse(int category, int variation) {
         if (mResponses != null) {
             try {
                 // [{response data}, ..., {response data}]
                 for (int i=0; i<mResponses.length(); i++) {
                     JSONObject response = mResponses.getJSONObject(i);
-                    if (response.getInt("id") == id) {
+                    if (response.getInt("category") == category &&
+                            response.getInt("variation") == variation) {
                         return response;
                     }
                 }
@@ -50,14 +51,14 @@ public class Response {
         return null;
     }
 
-    private static int getInt(Context context, int id, String tag) {
+    private static int getInt(Context context, int category, int variation, String tag) {
         if (mResponses == null) {
             mResponses = getResponseData(context);
         }
 
         int value = 0;
         try {
-            JSONObject response = getResponse(id);
+            JSONObject response = getResponse(category, variation);
             if (response != null) {
                 value = response.getInt(tag);
             }
@@ -67,21 +68,21 @@ public class Response {
         return value;
     }
 
-    private static String getString(Context context, int id, String tag) {
+    private static String getString(Context context, int category, int variation, String tag) {
         if (mResponses == null) {
             mResponses = getResponseData(context);
         }
 
         String ret = null;
         try {
-            JSONObject response = getResponse(id);
+            JSONObject response = getResponse(category, variation);
             if (response != null) {
                 JSONArray replies = response.getJSONArray(tag);
                 int n = replies.length();
                 int index = 0;
                 if (n > 1) {
                     long time = SystemClock.elapsedRealtime();
-                    index = (int) (time % n);
+                    index = (int) (time % n);   // random choice
                     if (DEBUG) Log.d(TAG,"magic="+time+" n="+n+" choose index="+index);
                 }
                 ret = replies.getString(index);
@@ -93,18 +94,29 @@ public class Response {
     }
 
     public static String getSupportiveResponse(Context context) {
-        return getReplyWord(context, SUPPORTIVE_RESPONSE_ID);
+        return getReplyWord(context, SUPPORTIVE_RESPONSE_ID, 0);
     }
 
-    public static String getReplyWord(Context context, int id) {
-        return getString(context, id, "reply");
+    public static String getReplyWord(Context context, int category, int variation) {
+        return getString(context, category, variation, "answer");
     }
 
-    public static int getIntonation(Context context, int id) {
-        return getInt(context, id, "intonation");
+    public static String getReplyWord(Context context, int category) {
+        long time = SystemClock.elapsedRealtime();
+        int variation = (int) (time % 3);   //TODO: 
+        String ret = null;
+        ret = getString(context, category, variation, "answer");
+        if (ret == null) {
+            ret = getString(context, category, 0, "answer");
+        }
+        return ret;
     }
 
-    public static int getAction(Context context, int id) {
-        return getInt(context, id, "action");
+    public static int getIntonation(Context context, int category) {
+        return getInt(context, category, 0, "intonation");
+    }
+
+    public static int getAction(Context context, int category) {
+        return getInt(context, category, 0, "action");
     }
 }

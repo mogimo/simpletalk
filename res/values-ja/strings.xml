@@ -5,9 +5,9 @@
     <string name="text">お話しましょう</string>
     <string name="wait">しばらくお待ちください</string>
 
-    <string name="please_again">よく分からなかったので、もう一度お願い</string>
-    <string name="error_again">ごめん、なんか調子が悪い</string>
-    <string name="low_score">ごめん、ちゃんと聞き取れなかった</string>
+    <string name="please_again"></string>
+    <string name="error_again">なんか調子が悪い</string>
+    <string name="low_score">ちゃんと聞き取れなかった</string>
     <string name="please_retry">ん？なんって言った？</string>
     <string name="error_location">位置情報サービス設定をオンしてください</string>
 

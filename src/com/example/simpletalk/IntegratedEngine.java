@@ -21,8 +21,6 @@ public class IntegratedEngine implements Engine {
     private Functions mFunction;
     private Parrot mParrot;
 
-    private boolean useLuceneParser = true;
-
     // for Yahoo! parser
     private final static String YAHOO_MORPHO_URL =
         "http://jlp.yahooapis.jp/MAService/V1/parse";
@@ -45,22 +43,12 @@ public class IntegratedEngine implements Engine {
 
     @Override
     public void request(String sentence) {
-        if (useLuceneParser) {
-            List<SimpleToken> tokens = LuceneGosenParser.parse(sentence);
-            if (tokens == null || tokens.size() == 0) {
-                Log.e(TAG, "Cound not parse sentence");
-                mListener.onResult(null);
-            }
-            AnalyzerTask task = new AnalyzerTask();
-            task.execute(tokens);
-        } else {
-            // yahoo! parser
-            mType = Type.MORPHOLOGICAL;
-            setDefaultPayload(Type.MORPHOLOGICAL);
-            setSentence(sentence);
-            mHttpPost = new HttpRequestTask(YAHOO_MORPHO_URL, mPayload);
-            mHttpPost.execute();
-        }
+        // yahoo! parser
+        mType = Type.MORPHOLOGICAL;
+        setDefaultPayload(Type.MORPHOLOGICAL);
+        setSentence(sentence);
+        mHttpPost = new HttpRequestTask(YAHOO_MORPHO_URL, mPayload);
+        mHttpPost.execute();
     }
 
     @Override

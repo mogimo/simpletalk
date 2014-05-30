@@ -3,14 +3,10 @@ package com.example.simpletalk;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.List;
-
-import net.java.sen.dictionary.Token;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import android.content.Context;
 import android.util.Xml;
 
 public class YahooMorphoParser {

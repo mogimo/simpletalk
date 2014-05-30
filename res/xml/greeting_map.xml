@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<map linked="false">
-    <entry key="hello">@string/hello</entry>
-    <entry key="evening">@string/evening</entry>
-    <entry key="morning">@string/morning</entry>
-</map>

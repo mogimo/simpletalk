@@ -27,9 +27,6 @@ public class MainActivity extends Activity {
     private final static boolean LOGGING_ON = true;
     private final static String GAE_LOGGING = "http://pirobosetting.appspot.com/register";
 
-    private static boolean isUseGoogle = false;
-    private static boolean isUseHOYA = false;
-
     private TextView mTextView;
     private RepeatHandler mHandler = new RepeatHandler();
     private boolean isRecogniezrWorking = false;
@@ -42,10 +39,7 @@ public class MainActivity extends Activity {
 
     private class RecognizerServiceListener implements Recognizer.RecognizerListener {
         private String addEmotionTag(String message, int emotion) {
-            if (!isUseHOYA) {
-                return message;
-            }
-            return Utils.addEmotionTag(message, emotion);
+            return message;
         }
 
         @Override
@@ -166,25 +160,17 @@ public class MainActivity extends Activity {
         mTextView = (TextView)findViewById(R.id.text);
 
         // Speech recognizer engine
-        if (isUseGoogle) {
-            mSpeech = new GoogleRecognizer(this);
-        } else {
-            mSpeech = new VGateASRTypeD();
-        }
+        mSpeech = new GoogleRecognizer(this);
         mSpeech.setRecognizerListener(mSpeechRecognizeListener);
         mSpeech.init();
 
         // Text to speech engine
-        if (isUseHOYA) {
-            mVoice = new HoyaVoiceText(this);
-        } else {
-            //mVoice = new AITalk(this);
-            mVoice = new TtsEngine(this);
-        }
+        mVoice = new TtsEngine(this);
         mVoice.init();
 
         // Dialogue engine
-        mEngine = new IntegratedEngine(this);
+        //mEngine = new IntegratedEngine(this);
+        mEngine = new ChattingEngine(this);
         mEngine.setResponseListener(mDialogListener);
     }
 
@@ -209,69 +195,6 @@ public class MainActivity extends Activity {
         mSpeech.release();
         mHandler = null;
     }
-
-    /*
-     * Menu
-     */
-    public boolean onCreateOptionsMenu(Menu menu) {
-        //menu.add(0,0,0,"Use HOYA[Voice]");
-        //menu.add(0,1,0,"Use AITalk[Voice]");
-        menu.add(0,2,0,"Use Google[Recognize]");
-        menu.add(0,3,0,"Use vGate[Recognize]");
-        return true;
-    }
-
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        case 1:
-            if (isUseHOYA) {
-                mVoice.release();
-                mVoice = null;
-                mVoice = new AITalk(this);
-                mVoice.init();
-                isUseHOYA = false;
-            }
-            break;
-        case 2:
-            if (!isUseGoogle) {
-                mSpeech.stop();
-                mSpeech.release();
-                mSpeech = null;
-                mSpeech = new GoogleRecognizer(this);
-                mSpeech.setRecognizerListener(mSpeechRecognizeListener);
-                mSpeech.init();
-                isUseGoogle = true;
-                isRecogniezrWorking = false;
-                mTextView.setText(getString(R.string.wait));
-            }
-            break;
-        case 3:
-            if (isUseGoogle) {
-                mSpeech.stop();
-                mSpeech.release();
-                mSpeech = null;
-                mSpeech = new VGateASRTypeD();
-                mSpeech.setRecognizerListener(mSpeechRecognizeListener);
-                mSpeech.init();
-                isUseGoogle = false;
-                isRecogniezrWorking = false;
-                mTextView.setText(getString(R.string.wait));
-            }
-            break;
-        case 0:
-        default:
-            if (!isUseHOYA) {
-                mVoice.release();
-                mVoice = null;
-                mVoice = new HoyaVoiceText(this);
-                mVoice.init();
-                isUseHOYA = true;
-            }
-            break;
-        }
-        messageRetry(0);
-        return true;
-    }    
 
     /*
      * Logging

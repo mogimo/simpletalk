@@ -57,6 +57,7 @@ public class TtsEngine implements VoiceEngine, OnInitListener {
         if (mTts != null) {
             mTts.shutdown();
         }
+        mTts = null;
     }
 
     @Override
