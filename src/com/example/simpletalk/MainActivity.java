@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
     private Recognizer mSpeech;
     private RecognizerServiceListener mSpeechRecognizeListener = new RecognizerServiceListener();
     private VoiceEngine mVoice;
+    private VoiceListener mVoiceListener = new VoiceListener();
     private Engine mEngine;
     private DialogueListener mDialogListener = new DialogueListener();
 
@@ -119,6 +120,23 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void restart() {
+        mHandler.removeMessages(MSG_SPEECH_AGAIN);
+        mHandler.sendEmptyMessage(MSG_SPEECH_AGAIN);
+        if (DEBUG) Log.d(TAG, "restart speech recognize");
+    }
+
+    private class VoiceListener implements VoiceEngine.ProcessListener {
+        @Override
+        public void onStart() {
+        }
+
+        @Override
+        public void onEnd() {
+            restart();
+        }
+    }
+
     private class RepeatHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -169,6 +187,9 @@ public class MainActivity extends Activity {
         // Text to speech engine
         mVoice = new TtsEngine(this);
         mVoice.init();
+        if (mVoice.hasListener()) {
+            mVoice.setProcessListener(mVoiceListener);
+        }
 
         // Dialogue engine
         //mEngine = new IntegratedEngine(this);

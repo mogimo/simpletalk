@@ -12,7 +12,7 @@ import android.util.Log;
 
 public class TtsEngine implements VoiceEngine, OnInitListener {
     private final static boolean DEBUG = BuildConfig.DEBUG;
-    private final static String TAG = "WhisperFairy";
+    private final static String TAG = "SimpleTalk: TtsEngine";
     private final static String PARAM_TAG = TtsEngine.class.getPackage().getName();
     private final static String PARAM_RETRY = PARAM_TAG + ":retry";
     private final static String PARAM_TALK = PARAM_TAG + ":talk";
@@ -22,11 +22,15 @@ public class TtsEngine implements VoiceEngine, OnInitListener {
     private TextToSpeech mTts;
     private TtsProgressListener mTtsListener;
     private HashMap<String, String> mTtsParam = null;
+    private ProcessListener mListener;
 
     private class TtsProgressListener extends UtteranceProgressListener {
         @Override
         public void onDone(String utteranceId) {
             if (DEBUG) Log.d(TAG, "onDone: " + utteranceId);
+            if (mListener != null) {
+                mListener.onEnd();
+            }
         }
 
         @Override
@@ -37,6 +41,9 @@ public class TtsEngine implements VoiceEngine, OnInitListener {
         @Override
         public void onStart(String utteranceId) {
             if (DEBUG) Log.d(TAG, "onStart: " + utteranceId);
+            if (mListener != null) {
+                mListener.onStart();
+            }
         }
     }
 
@@ -74,6 +81,16 @@ public class TtsEngine implements VoiceEngine, OnInitListener {
     public void onInit(int arg0) {
         if (DEBUG) Log.d(TAG, "TTS ready!");
         isTtsReady = true;
+    }
+
+    @Override
+    public boolean hasListener() {
+        return true;
+    }
+
+    @Override
+    public void setProcessListener(ProcessListener listener) {
+        mListener = listener;
     }
 
 }
