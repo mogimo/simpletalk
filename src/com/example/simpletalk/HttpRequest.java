@@ -24,7 +24,7 @@ import android.util.Log;
 
 public class HttpRequest {
     private final static boolean DEBUG = BuildConfig.DEBUG;
-    private final static String TAG = "SimpleTalk";
+    private final static String TAG = "SimpleTalk:HttpRequest";
 
     public String post(String uri, Map<String, String>payload) {
         URI url = null;
@@ -52,7 +52,7 @@ public class HttpRequest {
         try {
             ResponseHandler<String> handler = new SimpleResponseHandler<String>();
             ret = httpClient.execute(request, handler);
-            if (DEBUG) Log.d(TAG, "http request: return: " + ret);
+            if (DEBUG) Log.d(TAG, "http request: return: " + request);
         } catch (IOException e) {
             if (DEBUG) Log.d(TAG, "http request: error:" + e.toString());
             ret = "error: " + e.toString();

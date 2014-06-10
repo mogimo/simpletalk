@@ -11,7 +11,7 @@ public class ChattingEngine implements Engine {
 
     public ChattingEngine(Context context) {
         this.mContext = context;
-        mGreeting = new Greeting();
+        mGreeting = new Greeting(context);
     }
 
     @Override

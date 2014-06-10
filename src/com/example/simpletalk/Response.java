@@ -33,15 +33,19 @@ public class Response {
         return responses;
     }
 
-    private static JSONObject getResponse(int category, int variation) {
+    private static JSONObject getResponse(int category, String variation) {
         if (mResponses != null) {
             try {
                 // [{response data}, ..., {response data}]
                 for (int i=0; i<mResponses.length(); i++) {
                     JSONObject response = mResponses.getJSONObject(i);
-                    if (response.getInt("category") == category &&
-                            response.getInt("variation") == variation) {
-                        return response;
+                    if (response.getInt("category") == category) {
+                        String var = response.getString("variation");
+                        if (var.equals(variation)) {
+                            return response;
+                        } else if (var.equals("")) {
+                            return response;
+                        }
                     }
                 }
             } catch (JSONException e) {
@@ -51,7 +55,7 @@ public class Response {
         return null;
     }
 
-    private static int getInt(Context context, int category, int variation, String tag) {
+    private static int getInt(Context context, int category, String variation, String tag) {
         if (mResponses == null) {
             mResponses = getResponseData(context);
         }
@@ -68,7 +72,7 @@ public class Response {
         return value;
     }
 
-    private static String getString(Context context, int category, int variation, String tag) {
+    private static String getString(Context context, int category, String variation, String tag) {
         if (mResponses == null) {
             mResponses = getResponseData(context);
         }
@@ -94,29 +98,23 @@ public class Response {
     }
 
     public static String getSupportiveResponse(Context context) {
-        return getReplyWord(context, SUPPORTIVE_RESPONSE_ID, 0);
+        return getReplyWord(context, SUPPORTIVE_RESPONSE_ID, "");
     }
 
-    public static String getReplyWord(Context context, int category, int variation) {
+    public static String getReplyWord(Context context, int category, String variation) {
         return getString(context, category, variation, "answer");
     }
 
     public static String getReplyWord(Context context, int category) {
         long time = SystemClock.elapsedRealtime();
-        int variation = (int) (time % 3);   //TODO: 
-        String ret = null;
-        ret = getString(context, category, variation, "answer");
-        if (ret == null) {
-            ret = getString(context, category, 0, "answer");
-        }
-        return ret;
+        return getString(context, category, "", "answer");
     }
 
     public static int getIntonation(Context context, int category) {
-        return getInt(context, category, 0, "intonation");
+        return getInt(context, category, "", "intonation");
     }
 
     public static int getAction(Context context, int category) {
-        return getInt(context, category, 0, "action");
+        return getInt(context, category, "", "action");
     }
 }

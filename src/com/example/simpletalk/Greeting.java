@@ -11,32 +11,29 @@ import android.util.Log;
 
 /**
  * Exact match phrase parser
- * @author S121206
- *
  */
 public final class Greeting {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk:Greeting";
-
+    private static final int FORMAT_VERSION = 2;
     private static final String DB_FILE = "greeting.txt";
     /* greeting JSON data */
     private static String mData = null;
 
-    private static final int FORMAT_VERSION = 2;
+    private Context mContext;
+    //private YahooMorphoParser mMa = new YahooMorphoParser();
+    private LuceneGosenParser mMa = new LuceneGosenParser();
+    private WordSearch mWs = new WordSearch();
+    private String mVariation;
 
-    @Deprecated
-    /* not work any more */
-     public static String getResponse(Context context, String word) {
-         return null;
-     }
+    public Greeting(Context context) {
+        mContext = context;
+    }
 
-    /*
-     * return greeting message
-     */
     public String greeting(Context context, List<SimpleToken> tokens) {
         int id = 0;
         for (SimpleToken token : tokens) {
-            if ((id = getResponseId(context, token.getSurface())) != 0) {
+            if ((id = getCategoryId(context, token.getSurface())) != 0) {
                 String str = Response.getReplyWord(context, id);
                 int emotion = 0;
                 if ((emotion = Response.getIntonation(context, id)) != 0) {
@@ -50,13 +47,57 @@ public final class Greeting {
 
     public String greeting(Context context, String word) {
         int category = 0;
-        if ((category = getResponseId(context, word)) != 0) {
-            String str = Response.getReplyWord(context, category);
+        mVariation = null;
+        if ((category = getCategoryId(context, word)) != 0) {
+            String str;
+            if (mVariation != null) {
+                str = Response.getReplyWord(context, category, mVariation);
+            } else {
+                str = Response.getReplyWord(context, category);
+            }
             int emotion = 0;
             if ((emotion = Response.getIntonation(context, category)) != 0) {
                 str = Utils.addEmotionTag(str, emotion);
             }
             return str;
+        }
+        return null;
+    }
+
+    private boolean hasClassifier(String word) {
+        return word.indexOf('%') != -1 ? true : false;
+    }
+
+    private String truncateClassifier(String word) {
+        int start = word.indexOf('%');
+        int end = word.indexOf('%', start+1);
+        if (start == -1 || end == -1) {
+            return "";
+        } else {
+            String classifier = word.substring(start+1, end);
+            String truncated = word.substring(end+1);
+            if (DEBUG) Log.d(TAG, "classifier="+classifier+" truncated="+truncated);
+            return truncated;
+        }
+    }
+
+    private String searchTopCategory(String sentence) {
+        List<SimpleToken> tokens = mMa.parse(sentence);
+        if (tokens.isEmpty()) {
+            return null;
+        }
+
+        String NOUN = mContext.getResources().getString(R.string.noun);
+        for (int i=tokens.size()-1; i>=0; i--) {
+            SimpleToken token = tokens.get(i);
+            String word = token.getSurface();
+            if(DEBUG) Log.d(TAG, "word="+word+" ("+token.getPartOfSpeech()+")");
+            if (token.getPartOfSpeech().contains(NOUN)) {
+                List<String> categories = mWs.getCategories(word);
+                if (!categories.isEmpty()) {
+                    return categories.get(0);
+                }
+            }
         }
         return null;
     }
@@ -67,12 +108,12 @@ public final class Greeting {
      * @param text the greeting word
      * @return the response id for the parameter
      */
-     private int getResponseId(Context context, String sentence) {
+     private int getCategoryId(Context context, String sentence) {
          if (mData == null) {
              mData = Utils.loadAssetDB(context, DB_FILE);
          }
 
-         int response = 0;
+         int id = 0;
          boolean found = false;
          try {
              JSONObject root = new JSONObject(mData);
@@ -86,13 +127,23 @@ public final class Greeting {
                      JSONArray words = phrase.getJSONArray("words");
                      // [word, word, ..., word]
                      for (int k=0; k<words.length(); k++) {
-                         if (sentence.contains(words.getString(k))) {
+                         String word = words.getString(k);
+                         boolean hasClassifier = hasClassifier(word);
+                         if (hasClassifier) {
+                             //NOTE: classifier is truncated from word
+                             word = truncateClassifier(word);
+                         }
+                         if (sentence.contains(word)) {
+                             if (hasClassifier) {
+                                 mVariation = searchTopCategory(sentence);
+                                 if (DEBUG) Log.d(TAG, "variation="+mVariation);
+                             }
                              found = true;
                              break;
                          }
                      }
                      if (found) {
-                         response = phrase.getInt("category");
+                         id = phrase.getInt("category");
                          break;
                      }
                  }
@@ -100,6 +151,6 @@ public final class Greeting {
          } catch (JSONException e) {
              e.printStackTrace();
          }
-         return response;
+         return id;
      }
 }
