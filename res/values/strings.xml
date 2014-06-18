@@ -15,4 +15,6 @@
     <string name="morning">Good Morning</string>
     <string name="hi">Hi; Hey</string>
     <string name="yah">Yah</string>
+
+    <string name="period">.</string>
 </resources>

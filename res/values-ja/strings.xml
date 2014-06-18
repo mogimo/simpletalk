@@ -22,4 +22,6 @@
     <string name="noun">名詞</string>
     <string name="proper_noun">固有名詞</string>
     <string name="person_name">人名</string>
+    <string name="unknown">未知語</string>
+    <string name="period">。</string>
 </resources>

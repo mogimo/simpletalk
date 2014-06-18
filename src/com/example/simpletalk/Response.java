@@ -41,7 +41,7 @@ public class Response {
                     JSONObject response = mResponses.getJSONObject(i);
                     if (response.getInt("category") == category) {
                         String var = response.getString("variation");
-                        if (var.equals(variation)) {
+                        if (variation.contains(var)) {
                             return response;
                         } else if (var.equals("")) {
                             return response;

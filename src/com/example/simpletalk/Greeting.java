@@ -23,11 +23,12 @@ public final class Greeting {
     private Context mContext;
     //private YahooMorphoParser mMa = new YahooMorphoParser();
     private LuceneGosenParser mMa = new LuceneGosenParser();
-    private WordSearch mWs = new WordSearch();
-    private String mVariation;
+    private WordSearch mWs;
+    private String mVariation, mClassifier, mContent;
 
     public Greeting(Context context) {
         mContext = context;
+        mWs = new WordSearch(mContext);
     }
 
     public String greeting(Context context, List<SimpleToken> tokens) {
@@ -48,12 +49,21 @@ public final class Greeting {
     public String greeting(Context context, String word) {
         int category = 0;
         mVariation = null;
+        mClassifier = null;
+        mContent = null;
         if ((category = getCategoryId(context, word)) != 0) {
             String str;
             if (mVariation != null) {
                 str = Response.getReplyWord(context, category, mVariation);
             } else {
                 str = Response.getReplyWord(context, category);
+                if (mContent != null) {
+                    if (mContent.equals(WordSearch.MISSING)) {
+                        str = Response.getReplyWord(context, category, mContent);
+                    } else {
+                        str = String.format(str, mContent);
+                    }
+                }
             }
             int emotion = 0;
             if ((emotion = Response.getIntonation(context, category)) != 0) {
@@ -68,17 +78,42 @@ public final class Greeting {
         return word.indexOf('%') != -1 ? true : false;
     }
 
+    private String truncateMatchWordFromSentence(String sentence, String word) {
+        int end = sentence.indexOf(word);
+        return sentence.substring(0, end);
+    }
+
     private String truncateClassifier(String word) {
         int start = word.indexOf('%');
         int end = word.indexOf('%', start+1);
         if (start == -1 || end == -1) {
             return "";
         } else {
-            String classifier = word.substring(start+1, end);
+            mClassifier = word.substring(start+1, end);
             String truncated = word.substring(end+1);
-            if (DEBUG) Log.d(TAG, "classifier="+classifier+" truncated="+truncated);
+            if (DEBUG) Log.d(TAG, "classifier="+mClassifier+" truncated="+truncated);
             return truncated;
         }
+    }
+
+    private String searchContent(String sentence) {
+        List<SimpleToken> tokens = mMa.parse(sentence);
+        if (tokens.isEmpty()) {
+            return null;
+        }
+
+        String NOUN = mContext.getResources().getString(R.string.noun);
+        String UNKNOWN = mContext.getResources().getString(R.string.unknown);
+        for (int i=tokens.size()-1; i>=0; i--) {
+            SimpleToken token = tokens.get(i);
+            String word = token.getSurface();
+            if(DEBUG) Log.d(TAG, "word="+word+" ("+token.getPartOfSpeech()+")");
+            if (token.getPartOfSpeech().contains(NOUN) ||
+                    token.getPartOfSpeech().contains(UNKNOWN)) {
+               return mWs.getContent(word);
+            }
+        }
+        return null;
     }
 
     private String searchTopCategory(String sentence) {
@@ -131,12 +166,17 @@ public final class Greeting {
                          boolean hasClassifier = hasClassifier(word);
                          if (hasClassifier) {
                              //NOTE: classifier is truncated from word
-                             word = truncateClassifier(word);
+                             word = truncateClassifier(word);   // be set mClassifier
                          }
                          if (sentence.contains(word)) {
                              if (hasClassifier) {
-                                 mVariation = searchTopCategory(sentence);
-                                 if (DEBUG) Log.d(TAG, "variation="+mVariation);
+                                 if (mClassifier.equals("category")) {
+                                     mVariation = searchTopCategory(sentence);
+                                     if (DEBUG) Log.d(TAG, "variation="+mVariation);
+                                 } else if (mClassifier.equals("content")) {
+                                     mContent = searchContent(
+                                             truncateMatchWordFromSentence(sentence, word));
+                                 }
                              }
                              found = true;
                              break;

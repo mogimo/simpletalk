@@ -1,7 +1,8 @@
 {
     "format":1,
-    "date":"2014/06/10",
+    "date":"2014/06/18",
     "response":[
+        {"category":0,"variation":"","answer":["そうなんだー","そっかー","へー"],"intonation":0,"action":0},
         {"category":1,"variation":"","answer":["こんにちは"],"intonation":0,"action":0},
         {"category":2,"variation":"","answer":["こんばんは"],"intonation":0,"action":0},
         {"category":3,"variation":"早朝","answer":["おはよう！今日は早起きだね"],"intonation":0,"action":0},
@@ -83,6 +84,8 @@
         {"category":72,"variation":"","answer":["水飲めば？","お茶飲めば？"],"intonation":0,"action":0},
         {"category":73,"variation":"","answer":["歌って踊ることかな？","電気があれば何でもできる"],"intonation":0,"action":0},
         {"category":74,"variation":"","answer":["歯磨きながらしゃべるってすごいね","ちゃんと3分磨こうね","歯の裏側もしっかり！"],"intonation":0,"action":0},
-        {"category":75,"variation":"","answer":["いやいや、それほどでも。。。","ありがとう！充電もよろしくね"],"intonation":0,"action":0}
+        {"category":75,"variation":"","answer":["いやいや、それほどでも。。。","ありがとう！充電もよろしくね"],"intonation":0,"action":0},
+        {"category":76,"variation":"missing","answer":["ごめん、わからない","知らないんだ"],"intonation":0,"action":0},
+        {"category":76,"variation":"","answer":["%sのことだよ"],"intonation":0,"action":0}
     ]
 }
