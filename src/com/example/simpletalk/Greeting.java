@@ -168,7 +168,8 @@ public final class Greeting {
                              //NOTE: classifier is truncated from word
                              word = truncateClassifier(word);   // be set mClassifier
                          }
-                         if (sentence.contains(word)) {
+                         int distance = Utils.levenshteinDistance(sentence, word);
+                         if (sentence.contains(word) || distance <= 2) {
                              if (hasClassifier) {
                                  if (mClassifier.equals("category")) {
                                      mVariation = searchTopCategory(sentence);
