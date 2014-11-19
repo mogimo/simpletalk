@@ -46,6 +46,7 @@ public class WordSearch {
     public String getContent(String word) {
         mContent = "";
 
+        Log.d(TAG, "search wiki word = " + word);
         mPayload.put("prop", "revisions");
         mPayload.put("titles", word);
         mPayload.put("rvprop", "content");
@@ -93,6 +94,14 @@ public class WordSearch {
         return mCategories;
     }
 
+    private String trimSymbols(String sentence) {
+        String ret;
+        ret = sentence.replaceAll("#\\w+", "");
+        ret = ret.replaceAll("\\W", "");
+        ret = ret.replaceAll("Otheruses", "");
+        return ret;
+    }
+
     private String parseContent(String xml) {
         String content = MISSING;
         XmlPullParser parser = Xml.newPullParser();
@@ -105,10 +114,17 @@ public class WordSearch {
                 } else if (eventType == XmlPullParser.START_TAG) {
                     if (parser.getName().equals("rev")) {
                         String contents = parser.nextText();
-                        int end = contents.indexOf(
-                                mContext.getResources().getString(R.string.period));
-                        if (end != -1) {
-                            content = contents.substring(0, end);
+                        String[] lines = contents.split("\n");
+                        if (lines.length > 0) {
+                            content = "";
+                        }
+                        for (String line : lines) {
+                            String trimmed = trimSymbols(line);
+                            if (!trimmed.isEmpty()) {
+                                content += trimmed + 
+                                        mContext.getResources().getString(R.string.period);
+                                break;
+                            }
                         }
                         break;
                     }

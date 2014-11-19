@@ -101,6 +101,9 @@ public final class Greeting {
         if (tokens.isEmpty()) {
             return null;
         }
+        if (tokens.size() < 3) {
+            return mWs.getContent(sentence);
+        }
 
         String NOUN = mContext.getResources().getString(R.string.noun);
         String UNKNOWN = mContext.getResources().getString(R.string.unknown);

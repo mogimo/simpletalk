@@ -14,7 +14,7 @@ public class GoogleRecognizer implements Recognizer {
     private final static boolean DEBUG = BuildConfig.DEBUG;
     private final static String TAG = "SimpleTalk:GoogleRecognizer";
 
-    private final static float SCORE_THRESHOLD = 0.3f;
+    private final static float SCORE_THRESHOLD = 0.0f;
 
     private Context mContext;
 
@@ -71,7 +71,7 @@ public class GoogleRecognizer implements Recognizer {
                 if (DEBUG) Log.d(TAG, "[" + scores[i] + "] " + text);
                 i++;
             }
-            return (Float.compare(scores[0], SCORE_THRESHOLD) > 0) ?
+            return (Float.compare(scores[0], SCORE_THRESHOLD) >= 0) ?
                     results.get(0) : null;
         }
 

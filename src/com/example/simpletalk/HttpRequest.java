@@ -24,7 +24,7 @@ import android.util.Log;
 
 public class HttpRequest {
     private final static boolean DEBUG = BuildConfig.DEBUG;
-    private final static String TAG = "SimpleTalk:HttpRequest";
+    private final static String TAG = "Evaluator:HttpRequest";
 
     public String post(String uri, Map<String, String>payload) {
         URI url = null;
